@@ -1,0 +1,61 @@
+'use client';
+// Serviços presenciais (correspondente jurídica) com o pacote em destaque.
+import type { Dados } from '@/lib/tipos';
+import { linhas, linkWhats } from '@/lib/util';
+import { registrar } from '@/lib/estatisticas';
+import { ListaPrecos } from './Servicos';
+
+export default function Correspondente({ dados }: { dados: Dados }) {
+  const c = dados.config;
+  const cats = dados.categorias.filter((x) => x.modalidade === 'presencial');
+  if (cats.length === 0) return null;
+  const ids = cats.map((x) => x.id);
+  const lista = dados.servicos.filter((s) => s.categoria_id !== null && ids.includes(s.categoria_id));
+  const pacote = dados.pacotes.find((p) => p.grupo === 'correspondente');
+  const area = linhas(c.area_atendimento);
+
+  return (
+    <section id="correspondente" className="secao">
+      <div className="conteiner">
+        <div className="secao-cabeca">
+          <hr className="filete" />
+          <h2>Correspondente jurídica</h2>
+          <p>{cats[0].descricao}</p>
+        </div>
+
+        <div className="corresp">
+          <div>
+            <ListaPrecos servicos={lista} />
+            {linhas(c.observacoes_correspondente).map((o) => (
+              <p key={o} className="nota" style={{ margin: '14px 0 0' }}>{o}</p>
+            ))}
+            {area.length > 0 && (
+              <div className="area">
+                {area.map((a) => <p key={a}>{a}</p>)}
+              </div>
+            )}
+          </div>
+
+          {pacote && (
+            <aside className="cartao-pacote">
+              <h3>{pacote.nome}</h3>
+              <p>{pacote.publico}</p>
+              <div className="valor">{pacote.preco}</div>
+              <div className="por">{pacote.horas}</div>
+              <a
+                className="btn btn-ouro"
+                style={{ width: '100%' }}
+                href={linkWhats(c.whatsapp, `Olá, Maria Carolina! Tenho interesse no ${pacote.nome}. Pode me passar mais detalhes?`)}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => registrar('whatsapp')}
+              >
+                Solicitar diligência
+              </a>
+            </aside>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
