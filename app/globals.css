@@ -179,7 +179,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .regras { display: flex; flex-wrap: wrap; gap: 8px 24px; list-style: none; padding: 0; margin: 0; color: var(--suave); font-size: 0.9rem; }
 .regras li::before { content: '✓'; color: var(--ouro-texto); margin-right: 8px; font-weight: 700; }
 .teste { display: flex; align-items: center; gap: 20px; border: 1px dashed var(--ouro); border-radius: 6px; padding: 16px 22px; }
-.teste strong { font-family: var(--fonte-titulo); font-size: 1.6rem; color: var(--ouro-texto); }
+.teste .teste-preco { display: block; font-family: var(--fonte-titulo); font-size: 1.6rem; color: var(--ouro-texto); }
+.teste .teste-rotulo { font-weight: 700; }
 @media (max-width: 760px) { .pacotes-rodape { grid-template-columns: 1fr; } .teste { flex-wrap: wrap; } }
 
 /* ---------- Como funciona ---------- */
@@ -319,3 +320,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .consentimento input { width: 20px !important; min-height: 20px !important; height: 20px; margin-top: 2px; accent-color: var(--navy); flex-shrink: 0; }
 .consentimento a { color: var(--ouro-texto); }
 .rodape-base a { text-decoration: underline; text-underline-offset: 3px; }
+
+/* Ícones das áreas */
+.aba { display: inline-flex; align-items: center; gap: 8px; }
+.area-icone { color: var(--ouro-texto); display: block; margin-bottom: 10px; }
+.titulo-area { display: flex; align-items: center; gap: 10px; font-family: var(--fonte-titulo); font-size: 1.7rem; font-weight: 600; color: var(--titulo); margin: 0 0 6px; padding-bottom: 10px; border-bottom: 1px solid var(--ouro); }
+.titulo-area svg { color: var(--ouro-texto); }

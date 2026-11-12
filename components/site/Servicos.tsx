@@ -2,6 +2,7 @@
 // Serviços remotos, separados por categoria (abas) em formato de tabela de preços.
 import { useState } from 'react';
 import type { Dados, Servico } from '@/lib/tipos';
+import { IconeArea } from './Icones';
 
 export function ListaPrecos({ servicos }: { servicos: Servico[] }) {
   return (
@@ -29,8 +30,8 @@ export default function Servicos({ dados }: { dados: Dados }) {
       <div className="conteiner">
         <div className="secao-cabeca">
           <hr className="filete" />
-          <h2>Serviços</h2>
-          <p>Atendimento 100% online para todo o Brasil. Escolha uma área para ver os serviços e valores.</p>
+          <h2>{dados.config.titulo_servicos || 'Serviços'}</h2>
+          <p>{dados.config.sub_servicos || 'Atendimento 100% remoto para todo o Brasil.'}</p>
         </div>
 
         <div className="abas" role="tablist" aria-label="Áreas de serviço">
@@ -43,16 +44,17 @@ export default function Servicos({ dados }: { dados: Dados }) {
               aria-controls="painel-servicos"
               onClick={() => setAbaId(c.id)}
             >
-              {c.nome}
+              <IconeArea nome={c.icone} tamanho={18} /> {c.nome}
             </button>
           ))}
         </div>
 
         <div className="painel-servicos" id="painel-servicos" role="tabpanel">
           <div>
+            <span className="area-icone"><IconeArea nome={atual.icone} tamanho={30} /></span>
             <h3>{atual.nome}</h3>
             <p className="descricao">{atual.descricao}</p>
-            <p className="nota">Valores de referência. O orçamento final depende do volume e do prazo.</p>
+            {dados.config.nota_servicos && <p className="nota">{dados.config.nota_servicos}</p>}
           </div>
           <ListaPrecos servicos={lista} />
         </div>

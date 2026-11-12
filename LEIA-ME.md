@@ -28,6 +28,18 @@ Se o banco já estava instalado, rode `supabase/atualizacao-02.sql` no SQL Edito
 - Painel > Relatório de diligência: gera PDF com fotos para mandar ao escritório
 - Painel > Depoimentos: seção nova no site (aparece quando houver depoimento ativo)
 
+## Atualização 03 (tabela igual às artes + acessos)
+
+Rode `supabase/atualizacao-03.sql`. Ele:
+- deixa títulos e subtítulos das seções editáveis (painel > Textos e contatos > Títulos das seções)
+- coloca os ícones das áreas (painel > Serviços > Áreas)
+- marca o pacote Jurídico como "Mais procurado" e inclui "Relatório com fotos: incluso"
+- libera matheusalcan19@gmail.com (master) e vitraforma@gmail.com (admin) no painel
+
+## Atualização 04 (tabela de serviços atualizada)
+
+Rode `supabase/atualizacao-04.sql`. Deixa serviços, áreas, pacotes e regras iguais ao PDF "Tabela de Serviços".
+
 ## Onde mexer
 
 - Pelo painel `/admin` (sem código): textos, marca, cores, fonte, tema, logo, foto,

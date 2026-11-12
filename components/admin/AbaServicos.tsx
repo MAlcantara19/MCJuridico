@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import CrudLista from './CrudLista';
+import { ICONES_AREA } from '@/components/site/Icones';
 
 type Aviso = (m: string, e?: boolean) => void;
 
@@ -46,11 +47,12 @@ export default function AbaServicos({ avisar }: { avisar: Aviso }) {
           tabela="categorias"
           avisar={avisar}
           textoNovo="Nova área"
-          novo={{ nome: 'Nova área', descricao: '', modalidade: 'remoto' }}
+          novo={{ nome: 'Nova área', descricao: '', modalidade: 'remoto', icone: 'documento' }}
           aoMudar={() => setVersao((n) => n + 1)}
           campos={[
             { nome: 'nome', rotulo: 'Nome da área' },
             { nome: 'modalidade', rotulo: 'Tipo', tipo: 'select', opcoes: [{ valor: 'remoto', rotulo: 'Remoto' }, { valor: 'presencial', rotulo: 'Presencial' }] },
+            { nome: 'icone', rotulo: 'Ícone', tipo: 'select', opcoes: ICONES_AREA },
             { nome: 'ativo', rotulo: 'Aparece no site', tipo: 'bool' },
             { nome: 'descricao', rotulo: 'Descrição curta', tipo: 'area' },
           ]}

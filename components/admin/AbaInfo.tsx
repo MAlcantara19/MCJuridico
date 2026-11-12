@@ -23,6 +23,21 @@ export default function AbaInfo({ config, salvar }: { config: Config; salvar: (p
         ]}
       />
       <FormConfig
+        titulo="Títulos das seções"
+        config={config}
+        salvar={salvar}
+        campos={[
+          { nome: 'titulo_servicos', rotulo: 'Serviços: título' },
+          { nome: 'sub_servicos', rotulo: 'Serviços: subtítulo', dica: 'Ex.: Atendimento 100% remoto para todo o Brasil · Hora avulsa R$ 40 a R$ 60' },
+          { nome: 'nota_servicos', rotulo: 'Serviços: observação pequena', dica: 'Deixe vazio para esconder.' },
+          { nome: 'titulo_correspondente', rotulo: 'Correspondente: título' },
+          { nome: 'sub_correspondente', rotulo: 'Correspondente: subtítulo' },
+          { nome: 'titulo_pacotes', rotulo: 'Pacotes: título' },
+          { nome: 'sub_pacotes', rotulo: 'Pacotes: subtítulo' },
+          { nome: 'rotulo_teste', rotulo: 'Pacote teste: chamada', dica: 'Ex.: Experimente' },
+        ]}
+      />
+      <FormConfig
         titulo="Contatos"
         config={config}
         salvar={salvar}

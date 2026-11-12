@@ -70,3 +70,34 @@ export function IconeEnviar({ tamanho = 18 }: P) {
     </svg>
   );
 }
+
+// Ícones das áreas de serviço (escolhidos no painel).
+export const ICONES_AREA = [
+  { valor: 'balanca', rotulo: 'Balança (jurídico)' },
+  { valor: 'carteira', rotulo: 'Carteira (financeiro)' },
+  { valor: 'monitor', rotulo: 'Monitor (digital)' },
+  { valor: 'loja', rotulo: 'Loja (negócios)' },
+  { valor: 'maleta', rotulo: 'Maleta (presencial)' },
+  { valor: 'documento', rotulo: 'Documento' },
+  { valor: 'nenhum', rotulo: 'Sem ícone' },
+];
+
+export function IconeArea({ nome, tamanho = 22 }: { nome?: string; tamanho?: number }) {
+  const p = { width: tamanho, height: tamanho, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.6, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true };
+  switch (nome) {
+    case 'balanca':
+      return <svg {...p}><path d="M12 3v18M7 21h10M4 7h16M6 7l-3 7a3 3 0 0 0 6 0zM18 7l-3 7a3 3 0 0 0 6 0z" /></svg>;
+    case 'carteira':
+      return <svg {...p}><path d="M4 7h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h11" /><path d="M20 11h-4a2 2 0 0 0 0 4h4" /></svg>;
+    case 'monitor':
+      return <svg {...p}><rect x="3" y="4" width="18" height="12" rx="2" /><path d="M8 20h8M12 16v4" /></svg>;
+    case 'loja':
+      return <svg {...p}><path d="M4 9l1.5-5h13L20 9M4 9h16M4 9v11h16V9M9 20v-6h6v6" /><path d="M4 9a2.7 2.7 0 0 0 5.3 0 2.7 2.7 0 0 0 5.4 0A2.7 2.7 0 0 0 20 9" /></svg>;
+    case 'maleta':
+      return <svg {...p}><rect x="3" y="7" width="18" height="13" rx="2" /><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2M9 7v13M15 7v13" /></svg>;
+    case 'documento':
+      return <svg {...p}><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z" /><path d="M14 3v5h5M9 13h6M9 17h6" /></svg>;
+    default:
+      return null;
+  }
+}

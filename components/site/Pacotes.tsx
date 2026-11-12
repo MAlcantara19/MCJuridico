@@ -15,8 +15,8 @@ export default function Pacotes({ dados }: { dados: Dados }) {
       <div className="conteiner">
         <div className="secao-cabeca">
           <hr className="filete" />
-          <h2>Pacotes mensais</h2>
-          <p>Horas fixas por mês, com prioridade no atendimento.</p>
+          <h2>{c.titulo_pacotes || 'Pacotes mensais'}</h2>
+          <p>{c.sub_pacotes || 'Horas fixas por mês, com prioridade no atendimento.'}</p>
         </div>
 
         {mensais.length > 0 && (
@@ -40,8 +40,8 @@ export default function Pacotes({ dados }: { dados: Dados }) {
           {teste && (
             <div className="teste">
               <div>
-                <div style={{ fontWeight: 600 }}>{teste.nome} · {teste.horas}</div>
-                <strong>{teste.preco}</strong>
+                <div><strong className="teste-rotulo">{c.rotulo_teste || 'Experimente'}:</strong> {teste.nome.toLowerCase()} de {teste.horas}</div>
+                <strong className="teste-preco">{teste.preco}</strong>
               </div>
               <a
                 className="btn btn-navy"

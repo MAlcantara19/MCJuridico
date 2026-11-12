@@ -18,6 +18,14 @@ export type Config = {
   area_atendimento: string;
   observacoes_correspondente: string;
   regras_pacotes: string;
+  titulo_servicos: string;
+  sub_servicos: string;
+  nota_servicos: string;
+  titulo_correspondente: string;
+  sub_correspondente: string;
+  titulo_pacotes: string;
+  sub_pacotes: string;
+  rotulo_teste: string;
   passos: string;
   assistente_saudacao: string;
   aviso_legal: string;
@@ -34,7 +42,7 @@ export type Config = {
   secoes: Secao[];
 };
 
-export type Categoria = { id: number; nome: string; descricao: string; modalidade: 'remoto' | 'presencial'; ordem: number; ativo: boolean };
+export type Categoria = { id: number; nome: string; descricao: string; icone: string; modalidade: 'remoto' | 'presencial'; ordem: number; ativo: boolean };
 export type Servico = { id: number; categoria_id: number | null; nome: string; preco: string; ordem: number; ativo: boolean };
 export type Pacote = { id: number; nome: string; publico: string; horas: string; preco: string; grupo: 'mensal' | 'teste' | 'correspondente'; destaque: boolean; ordem: number; ativo: boolean };
 export type Formacao = { id: number; titulo: string; instituicao: string; ano: string; ordem: number };

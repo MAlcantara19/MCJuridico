@@ -4,6 +4,7 @@ import type { Dados } from '@/lib/tipos';
 import { linhas, linkWhats } from '@/lib/util';
 import { registrar } from '@/lib/estatisticas';
 import { ListaPrecos } from './Servicos';
+import { IconeArea } from './Icones';
 
 export default function Correspondente({ dados }: { dados: Dados }) {
   const c = dados.config;
@@ -19,12 +20,13 @@ export default function Correspondente({ dados }: { dados: Dados }) {
       <div className="conteiner">
         <div className="secao-cabeca">
           <hr className="filete" />
-          <h2>Correspondente jurídica</h2>
-          <p>{cats[0].descricao}</p>
+          <h2>{c.titulo_correspondente || 'Correspondente jurídica'}</h2>
+          <p>{c.sub_correspondente || cats[0].descricao}</p>
         </div>
 
         <div className="corresp">
           <div>
+            <h3 className="titulo-area"><IconeArea nome={cats[0].icone} tamanho={26} /> {cats[0].nome}</h3>
             <ListaPrecos servicos={lista} />
             {linhas(c.observacoes_correspondente).map((o) => (
               <p key={o} className="nota" style={{ margin: '14px 0 0' }}>{o}</p>

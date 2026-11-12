@@ -2,7 +2,7 @@
 -- MC JURÍDICO (site da Maria Carolina Costa) — banco de dados (Supabase)
 -- Cole tudo no Supabase > SQL Editor > New query e clique em RUN.
 -- Pode rodar de novo sem medo: ele não duplica nada.
--- ANTES DE RODAR: troque os dois e-mails no FINAL do arquivo.
+-- Depois rode também as atualizações 02 e 03, nessa ordem.
 -- =====================================================================
 
 -- ---------- TABELAS ----------
@@ -251,9 +251,9 @@ insert into configuracoes (
   '',
   'Olá, Maria Carolina! Vim pelo site e gostaria de saber mais sobre os seus serviços.',
   E'Sou bacharel em Direito e trabalho como assistente virtual e correspondente jurídica.\n\nAjudo escritórios de advocacia e pequenos negócios a tirar do caminho as tarefas que tomam tempo: controle de prazos, protocolos, digitação de peças, certidões, PDFs, planilhas, financeiro e atendimento. Assim, você fica livre para o que é estratégico.\n\nAtendo 100% online para todo o Brasil e, presencialmente, em Três Rios e Paraíba do Sul (RJ), com diligências em fóruns e cartórios.',
-  E'Atendimento presencial em Três Rios/RJ.\nParaíba do Sul/RJ: valor do serviço + custo de deslocamento.\nOutras comarcas sob consulta.',
-  E'Relatório com fotos da diligência incluso.\nCustas, taxas, cópias e deslocamentos longos são repassados ao cliente.',
-  E'Pagamento antecipado\nHora extra: R$ 40\nHoras não acumulam para o mês seguinte\nContrato de 3 meses: 10% de desconto',
+  E'Presencial em Três Rios/RJ e Paraíba do Sul/RJ (+ deslocamento).\nOutras comarcas sob consulta.',
+  'Custas e taxas repassadas.',
+  E'Pagamento antecipado\nHoras não acumulam\nHora extra R$ 40\nContrato de 3 meses: 10% de desconto',
   E'Você me chama | Conte pelo WhatsApp ou pelo formulário o que precisa.\nEu envio o orçamento | Valor e prazo claros antes de começar.\nEu executo | Cuido da tarefa e mantenho você informado.\nVocê recebe | Entrega organizada, com relatório e fotos nas diligências.',
   'Olá! Sou a assistente do site da Maria Carolina. Escolha uma dúvida abaixo ou escreva sua pergunta.',
   'Serviços de apoio administrativo e diligências. Não são realizados atos privativos da advocacia.',
@@ -270,27 +270,27 @@ begin
     insert into categorias (nome, descricao, modalidade, ordem) values
       ('Suporte administrativo jurídico', 'Apoio documental e operacional para escritórios de advocacia.', 'remoto', 1) returning id into c1;
     insert into categorias (nome, descricao, modalidade, ordem) values
-      ('Financeiro e comercial', 'Controles, orçamentos, pedidos e relatórios simples.', 'remoto', 2) returning id into c2;
+      ('Financeiro e comercial', 'Controles, orçamentos, pedidos e relatórios simples.', 'remoto', 3) returning id into c2;
     insert into categorias (nome, descricao, modalidade, ordem) values
-      ('Digital e plataformas', 'Formulários, arquivos PDF, cadastros e ferramentas digitais.', 'remoto', 3) returning id into c3;
+      ('Digital e plataformas', 'Formulários, arquivos PDF, cadastros e ferramentas digitais.', 'remoto', 4) returning id into c3;
     insert into categorias (nome, descricao, modalidade, ordem) values
-      ('Suporte a pequenos negócios', 'Gestão de pedidos, clientes, estoque e organização empresarial.', 'remoto', 4) returning id into c4;
+      ('Suporte a pequenos negócios', 'Gestão de pedidos, clientes, estoque e organização empresarial.', 'remoto', 5) returning id into c4;
     insert into categorias (nome, descricao, modalidade, ordem) values
-      ('Diligências e apoio presencial', 'Diligências presenciais para escritórios de qualquer comarca.', 'presencial', 5) returning id into c5;
+      ('Correspondente jurídica (presencial)', 'Diligências presenciais para escritórios de qualquer comarca.', 'presencial', 2) returning id into c5;
 
     insert into servicos (categoria_id, nome, preco, ordem) values
       (c1, 'Controle de prazos e audiências', 'R$ 50/h', 1),
-      (c1, 'Acompanhamento processual', 'R$ 8 a 15 por processo/mês', 2),
+      (c1, 'Acompanhamento processual', 'R$ 8 a 15 /processo/mês', 2),
       (c1, 'Protocolo eletrônico de petições', 'R$ 25 a 40 cada', 3),
-      (c1, 'Digitação e formatação de peças', 'R$ 8 a 15 por página', 4),
+      (c1, 'Digitação e formatação de peças', 'R$ 8 a 15 /página', 4),
       (c1, 'Organização de documentos de clientes', 'R$ 50/h', 5),
       (c1, 'Montagem de pastas e dossiês digitais', 'R$ 60 a 150', 6),
       (c1, 'Atendimento e triagem de clientes', 'R$ 50/h', 7),
       (c1, 'Agendamento de consultas', 'R$ 50/h', 8),
       (c1, 'Emissão de certidões', 'R$ 20 a 40 cada', 9),
-      (c1, 'Controle de honorários', 'a partir de R$ 150/mês', 10),
-      (c2, 'Contas a pagar e receber', 'a partir de R$ 150/mês', 1),
-      (c2, 'Fluxo de caixa simples', 'a partir de R$ 120/mês', 2),
+      (c1, 'Controle de honorários', 'desde R$ 150/mês', 10),
+      (c2, 'Contas a pagar e receber', 'desde R$ 150/mês', 1),
+      (c2, 'Fluxo de caixa simples', 'desde R$ 120/mês', 2),
       (c2, 'Elaboração de orçamentos', 'R$ 15 a 30 cada', 3),
       (c2, 'Emissão de notas fiscais e boletos', 'R$ 5 cada', 4),
       (c2, 'Lançamento de pedidos', 'R$ 3 a 5 cada', 5),
@@ -298,17 +298,17 @@ begin
       (c2, 'Relatório mensal simples', 'R$ 80 a 150', 7),
       (c2, 'Follow-up de propostas', 'R$ 45/h', 8),
       (c3, 'Criação de formulários online', 'R$ 40 a 80', 1),
-      (c3, 'Edição, junção e conversão de PDF', 'R$ 5 a 10 por arquivo', 2),
+      (c3, 'Edição, junção e conversão de PDF', 'R$ 5 a 10 /arquivo', 2),
       (c3, 'PDF editável e preenchível', 'R$ 40 a 100', 3),
       (c3, 'Cadastros em sistemas e plataformas', 'R$ 3 a 8 cada', 4),
       (c3, 'Cadastro de produtos em marketplaces', 'R$ 5 a 10 cada', 5),
       (c3, 'Organização de Drive / OneDrive', 'R$ 45/h', 6),
-      (c3, 'Planilhas e modelos personalizados', 'a partir de R$ 60', 7),
+      (c3, 'Planilhas e modelos personalizados', 'desde R$ 60', 7),
       (c3, 'Assinatura digital (envio e controle)', 'R$ 10 cada', 8),
       (c4, 'Gestão de pedidos', 'R$ 45/h', 1),
       (c4, 'Atendimento no WhatsApp e Instagram', 'R$ 45/h', 2),
-      (c4, 'Cadastro e controle de clientes', 'a partir de R$ 100/mês', 3),
-      (c4, 'Controle de estoque', 'a partir de R$ 150/mês', 4),
+      (c4, 'Cadastro e controle de clientes', 'desde R$ 100/mês', 3),
+      (c4, 'Controle de estoque', 'desde R$ 150/mês', 4),
       (c4, 'Fornecedores e cotações', 'R$ 50 a 100', 5),
       (c4, 'Organização de processos e rotinas', 'R$ 150 a 400', 6),
       (c4, 'Agenda e confirmações', 'R$ 45/h', 7),
@@ -319,18 +319,19 @@ begin
       (c5, 'Certidões presenciais em cartórios', 'R$ 40 a 80', 5),
       (c5, 'Pesquisa em cartório de imóveis', 'R$ 60 a 120', 6),
       (c5, 'Retirada e entrega de documentos', 'R$ 50 a 100', 7),
-      (c5, 'Preposto em audiências', 'R$ 150 a 250', 8);
+      (c5, 'Preposto em audiências', 'R$ 150 a 250', 8),
+      (c5, 'Relatório com fotos da diligência', 'incluso', 9);
   end if;
 
   if (select count(*) from pacotes) = 0 then
     insert into pacotes (nome, publico, horas, preco, grupo, destaque, ordem) values
-      ('Start', 'Ideal para autônomos', '10h/mês', 'R$ 450', 'mensal', false, 1),
-      ('Essencial', 'Ideal para pequenos negócios', '20h/mês', 'R$ 850', 'mensal', true, 2),
-      ('Jurídico', 'Ideal para advogados e escritórios', '30h/mês', 'R$ 1.300', 'mensal', false, 3),
-      ('Empresarial', 'Negócios com volume constante', '40h/mês', 'R$ 1.600', 'mensal', false, 4),
-      ('Dedicado', 'Escritórios e empresas maiores', '80h/mês', 'R$ 3.000', 'mensal', false, 5),
+      ('Start', 'Autônomos', '10h/mês', 'R$ 450', 'mensal', false, 1),
+      ('Essencial', 'Pequenos negócios', '20h/mês', 'R$ 850', 'mensal', false, 2),
+      ('Jurídico', 'Advogados e escritórios', '30h/mês', 'R$ 1.300', 'mensal', true, 3),
+      ('Empresarial', 'Volume constante', '40h/mês', 'R$ 1.600', 'mensal', false, 4),
+      ('Dedicado', 'Empresas maiores', '80h/mês', 'R$ 3.000', 'mensal', false, 5),
       ('Pacote teste', 'Experimente antes de fechar um plano', '5 horas', 'R$ 200', 'teste', false, 6),
-      ('Pacote Correspondente', 'Até 8 diligências por mês, com relatório de cada uma', '8 diligências/mês', 'R$ 600', 'correspondente', true, 7);
+      ('Pacote Correspondente', 'Até 8 diligências por mês, com relatório de cada uma', 'até 8 diligências/mês', 'R$ 600', 'correspondente', true, 7);
   end if;
 
   if (select count(*) from formacoes) = 0 then
@@ -351,9 +352,9 @@ begin
 end $$;
 
 -- ---------- ACESSO AO PAINEL ----------
--- TROQUE os e-mails abaixo pelos reais (o seu e o dela) ANTES de rodar.
+-- E-mails liberados no painel (troque aqui se precisar).
 -- Depois crie as contas com esses mesmos e-mails em Authentication > Users > Add user.
 insert into perfis (email, nome, papel) values
-  ('SEU-EMAIL@gmail.com', 'Matheus', 'master'),
-  ('EMAIL-DA-MARIA@gmail.com', 'Maria Carolina', 'admin')
+  ('matheusalcan19@gmail.com', 'Matheus', 'master'),
+  ('vitraforma@gmail.com', 'Maria Carolina', 'admin')
 on conflict (email) do nothing;
