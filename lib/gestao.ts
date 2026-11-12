@@ -3,6 +3,7 @@
 export type Cliente = {
   id: number; nome: string; tipo: string; responsavel: string; documento: string;
   telefone: string; email: string; cidade: string; observacoes: string; ativo: boolean; criado_em: string;
+  avaliacao_pedida_em?: string | null;
 };
 
 export type Atendimento = {
@@ -129,4 +130,22 @@ export function baixarPlanilha(nomeArquivo: string, cabecalho: string[], linhas:
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ---------- Pedido de avaliação ----------
+// Link do WhatsApp com o convite para avaliar (página /avaliar)
+export function linkPedidoAvaliacao(c: Pick<Cliente, 'telefone' | 'responsavel' | 'nome'>) {
+  const origem = typeof window !== 'undefined' ? window.location.origin : '';
+  const primeiro = (c.responsavel || '').trim().split(' ')[0];
+  return whatsDoTelefone(
+    c.telefone,
+    `Olá${primeiro ? `, ${primeiro}` : ''}! Obrigada pela confiança no meu trabalho. Se puder, deixe sua avaliação, leva menos de 1 minuto: ${origem}/avaliar?n=${encodeURIComponent(c.responsavel || c.nome)}`,
+  );
+}
+
+// Pode pedir de novo? (não pediu ainda ou faz mais de 90 dias)
+export function podePedirAvaliacao(c?: Pick<Cliente, 'telefone' | 'avaliacao_pedida_em'> | null) {
+  if (!c?.telefone) return false;
+  if (!c.avaliacao_pedida_em) return true;
+  return Date.now() - new Date(c.avaliacao_pedida_em).getTime() > 90 * 864e5;
 }

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { combina } from '@/lib/util';
-import { PERIODOS, STATUS, baixarPlanilha, brl, dataBR, intervalo, iso, mensagemCobranca, rotulo, whatsDoTelefone, type Atendimento } from '@/lib/gestao';
+import { PERIODOS, STATUS, baixarPlanilha, brl, dataBR, intervalo, iso, linkPedidoAvaliacao, mensagemCobranca, podePedirAvaliacao, rotulo, whatsDoTelefone, type Atendimento, type Cliente } from '@/lib/gestao';
 import type { Config } from '@/lib/tipos';
 import FormAtendimento from './FormAtendimento';
 import { LinhaServico } from './AbaClientes';
@@ -12,7 +12,8 @@ import { useBase } from './useBase';
 type Aviso = (m: string, e?: boolean) => void;
 
 export default function AbaFinanceiro({ avisar, config }: { avisar: Aviso; config: Config }) {
-  const { clientes, servicos } = useBase();
+  const { clientes, servicos, recarregar } = useBase();
+  const [sugestao, setSugestao] = useState<Cliente | null>(null);
   const [todos, setTodos] = useState<Atendimento[]>([]);
   const [periodo, setPeriodo] = useState('mes');
   const [filtro, setFiltro] = useState<'todos' | 'receber' | 'pagos' | 'abertos'>('todos');
@@ -95,6 +96,16 @@ export default function AbaFinanceiro({ avisar, config }: { avisar: Aviso; confi
     if (error) return avisar(error.message, true);
     avisar('Marcado como pago');
     carregar();
+    // Cliente satisfeito = melhor hora para pedir avaliação
+    const c = clientes.find((x) => x.id === a.cliente_id);
+    if (podePedirAvaliacao(c)) setSugestao(c!);
+  }
+
+  async function pedirAvaliacao(c: Cliente) {
+    window.open(linkPedidoAvaliacao(c), '_blank', 'noopener');
+    await supabase().from('clientes').update({ avaliacao_pedida_em: new Date().toISOString() }).eq('id', c.id);
+    setSugestao(null);
+    recarregar();
   }
 
   return (
@@ -113,6 +124,17 @@ export default function AbaFinanceiro({ avisar, config }: { avisar: Aviso; confi
           <button className="adm-btn pri" onClick={() => setEditando({})}>+ Registrar serviço</button>
         </span>
       </div>
+
+      {sugestao && (
+        <div className="adm-item mudou">
+          <strong>Pagamento registrado! Quer pedir uma avaliação para {sugestao.nome}?</strong>
+          <span className="adm-dica" style={{ margin: 0 }}>Abre o WhatsApp com o link da avaliação. Não sugerimos de novo para este cliente por 90 dias.</span>
+          <div className="adm-linha">
+            <button className="adm-btn pri" onClick={() => pedirAvaliacao(sugestao)}>Pedir avaliação</button>
+            <button className="adm-btn" onClick={() => setSugestao(null)}>Agora não</button>
+          </div>
+        </div>
+      )}
 
       {editando && (
         <FormAtendimento

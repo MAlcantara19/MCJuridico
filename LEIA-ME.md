@@ -85,6 +85,12 @@ Rode `supabase/atualizacao-08.sql` (depois do 06 e do 07).
    - Teste em Painel > Master > "Enviar e-mail de teste agora".
    - O envio automático é todo dia entre 18h e 19h (horário de Brasília), pelo vercel.json.
 
+## Atualização 10 (pedido automático de avaliação e resumo semanal)
+
+Rode `supabase/atualizacao-10.sql`.
+- Financeiro: ao marcar um serviço como pago, o painel sugere pedir avaliação (no máximo 1 vez a cada 90 dias por cliente)
+- Lembrete: às segundas, o e-mail traz o resumo da semana anterior (faturado, recebido, serviços, clientes novos, visitas, cliques e avaliações)
+
 ## Onde mexer
 
 - Pelo painel `/admin` (sem código): textos, marca, cores, fonte, tema, logo, foto,

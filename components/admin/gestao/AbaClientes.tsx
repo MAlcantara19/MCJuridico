@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '@/lib/supabase';
 import { combina } from '@/lib/util';
 import {
-  STATUS, TIPOS_CLIENTE, brl, dataBR, mensagemCobranca, rotulo, whatsDoTelefone,
+  STATUS, TIPOS_CLIENTE, brl, dataBR, linkPedidoAvaliacao, mensagemCobranca, rotulo, whatsDoTelefone,
   type Atendimento, type Cliente, type Compromisso,
 } from '@/lib/gestao';
 import FormAtendimento from './FormAtendimento';
@@ -228,9 +228,10 @@ function FichaCliente({ id, config, navegar, clientes, servicos, avisar, voltar,
               className="adm-btn"
               target="_blank"
               rel="noopener noreferrer"
-              href={whatsDoTelefone(v.telefone, `Olá${v.responsavel ? `, ${v.responsavel.split(' ')[0]}` : ''}! Obrigada pela confiança no meu trabalho. Se puder, deixe sua avaliação, leva menos de 1 minuto: ${typeof window !== 'undefined' ? window.location.origin : ''}/avaliar?n=${encodeURIComponent(v.responsavel || v.nome)}`)}
+              href={linkPedidoAvaliacao(v)}
+              onClick={() => { supabase().from('clientes').update({ avaliacao_pedida_em: new Date().toISOString() }).eq('id', id).then(() => {}); }}
             >
-              Pedir avaliação
+              Pedir avaliação{atual?.avaliacao_pedida_em ? ` (pedida em ${new Date(atual.avaliacao_pedida_em).toLocaleDateString('pt-BR')})` : ''}
             </a>
           )}
           {pendentes.length > 0 && (
