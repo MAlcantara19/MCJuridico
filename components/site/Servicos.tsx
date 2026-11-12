@@ -2,7 +2,8 @@
 // Serviços remotos, separados por categoria (abas) em formato de tabela de preços.
 import { useState } from 'react';
 import type { Dados, Servico } from '@/lib/tipos';
-import { IconeArea } from './Icones';
+import { IconeArea, IconeBusca } from './Icones';
+import { combina, linkWhats } from '@/lib/util';
 
 export function ListaPrecos({ servicos }: { servicos: Servico[] }) {
   return (
@@ -21,9 +22,28 @@ export function ListaPrecos({ servicos }: { servicos: Servico[] }) {
 export default function Servicos({ dados }: { dados: Dados }) {
   const categorias = dados.categorias.filter((c) => c.modalidade !== 'presencial');
   const [abaId, setAbaId] = useState<number | undefined>(categorias[0]?.id);
+  const [busca, setBusca] = useState('');
   const atual = categorias.find((c) => c.id === abaId) ?? categorias[0];
   if (!atual) return null;
   const lista = dados.servicos.filter((s) => s.categoria_id === atual.id);
+
+  // Busca em todos os serviços (remotos e presenciais), sem acento e sem maiúscula
+  const termo = busca.trim();
+  const nomeArea = (id: number | null) => dados.categorias.find((c) => c.id === id);
+  const resultados = termo
+    ? dados.servicos.filter((s) => combina(`${s.nome} ${nomeArea(s.categoria_id)?.nome ?? ''}`, termo))
+    : [];
+
+  function irPara(categoriaId: number | null) {
+    const cat = nomeArea(categoriaId);
+    setBusca('');
+    if (cat?.modalidade === 'presencial') {
+      document.getElementById('correspondente')?.scrollIntoView({ behavior: 'smooth' });
+    } else if (cat) {
+      setAbaId(cat.id);
+      document.getElementById('painel-servicos')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
 
   return (
     <section id="servicos" className="secao">
@@ -34,6 +54,42 @@ export default function Servicos({ dados }: { dados: Dados }) {
           <p>{dados.config.sub_servicos || 'Atendimento 100% remoto para todo o Brasil.'}</p>
         </div>
 
+        <label className="busca">
+          <IconeBusca />
+          <input
+            id="busca-servicos"
+            type="search"
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
+            placeholder="Buscar serviço (ex.: certidão, PDF, protocolo)"
+            aria-label="Buscar serviço"
+          />
+        </label>
+
+        {termo && (
+          <div className="busca-resultados" aria-live="polite">
+            {resultados.length > 0 ? (
+              <ul className="lista-precos">
+                {resultados.map((s) => (
+                  <li key={s.id}>
+                    <button className="busca-item" onClick={() => irPara(s.categoria_id)}>
+                      <span className="nome">{s.nome}<small>{nomeArea(s.categoria_id)?.nome}</small></span>
+                    </button>
+                    <span className="pontilhado" aria-hidden="true" />
+                    <span className="preco">{s.preco}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="nota">
+                Nenhum serviço com “{busca}”.{' '}
+                <a href={linkWhats(dados.config.whatsapp, `Olá, Maria Carolina! Vocês fazem ${busca}?`)} target="_blank" rel="noopener noreferrer">Pergunte no WhatsApp</a>: muita coisa é feita sob consulta.
+              </p>
+            )}
+          </div>
+        )}
+
+        {!termo && (<>
         <div className="abas" role="tablist" aria-label="Áreas de serviço">
           {categorias.map((c) => (
             <button
@@ -58,6 +114,7 @@ export default function Servicos({ dados }: { dados: Dados }) {
           </div>
           <ListaPrecos servicos={lista} />
         </div>
+        </>)}
       </div>
     </section>
   );

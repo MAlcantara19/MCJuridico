@@ -3,6 +3,7 @@
 // Cada item tem: editar, salvar, subir/descer e excluir.
 import { useEffect, useState, type ReactNode } from 'react';
 import { supabase } from '@/lib/supabase';
+import { combina } from '@/lib/util';
 
 export type Campo = {
   nome: string;
@@ -51,7 +52,12 @@ export default function CrudLista({ tabela, campos, novo, avisar, semOrdem, filt
     }
   }, [filtro, valorFiltro]);
 
-  const visiveis = filtro ? itens.filter((i) => String(i[filtro.campo]) === valorFiltro) : itens;
+  const [busca, setBusca] = useState('');
+  const termo = busca.trim();
+  // Com busca, procura em todos os itens (ignora o filtro de área)
+  const visiveis = termo
+    ? itens.filter((i) => combina(campos.map((c) => String(i[c.nome] ?? '')).join(' '), termo))
+    : filtro ? itens.filter((i) => String(i[filtro.campo]) === valorFiltro) : itens;
 
   function alterar(id: number, campo: string, valor: any) {
     setItens((lista) => lista.map((i) => (i.id === id ? { ...i, [campo]: valor } : i)));
@@ -157,6 +163,14 @@ export default function CrudLista({ tabela, campos, novo, avisar, semOrdem, filt
             </select>
           </label>
         ) : <span />}
+        <input
+          type="search"
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          placeholder="Buscar…"
+          aria-label="Buscar nesta lista"
+          style={{ maxWidth: 260 }}
+        />
         <button className="adm-btn pri" onClick={adicionar}>+ {textoNovo || 'Adicionar'}</button>
       </div>
 

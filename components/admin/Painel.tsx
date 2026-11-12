@@ -14,18 +14,20 @@ import AbaSolicitacoes from './AbaSolicitacoes';
 import AbaMaster from './AbaMaster';
 import AbaResumo from './AbaResumo';
 import AbaRelatorio from './AbaRelatorio';
+import AbaArquivos from './AbaArquivos';
 
 type Perfil = { email: string; nome: string; papel: 'master' | 'admin' };
 
 const ABAS = [
   { id: 'resumo', nome: 'Resumo' },
   { id: 'solicitacoes', nome: 'Solicitações' },
+  { id: 'arquivos', nome: 'Meus arquivos' },
   { id: 'relatorio', nome: 'Relatório de diligência' },
   { id: 'visual', nome: 'Visual e layout' },
   { id: 'info', nome: 'Textos e contatos' },
   { id: 'servicos', nome: 'Serviços' },
   { id: 'pacotes', nome: 'Pacotes' },
-  { id: 'documentos', nome: 'Documentos (PDF)' },
+  { id: 'documentos', nome: 'Documentos do site' },
   { id: 'perguntas', nome: 'Assistente e dúvidas' },
   { id: 'formacoes', nome: 'Formação' },
   { id: 'depoimentos', nome: 'Depoimentos' },
@@ -212,6 +214,7 @@ export default function Painel() {
           {aba === 'resumo' && <AbaResumo nome={perfil.nome} irPara={setAba} />}
           {aba === 'solicitacoes' && <AbaSolicitacoes avisar={avisar} />}
           {aba === 'relatorio' && <AbaRelatorio config={config} />}
+          {aba === 'arquivos' && <AbaArquivos avisar={avisar} />}
           {aba === 'depoimentos' && <AbaListas tipo="depoimentos" config={config} salvar={salvarConfig} avisar={avisar} />}
           {aba === 'visual' && <AbaVisual config={config} salvar={salvarConfig} avisar={avisar} />}
           {aba === 'info' && <AbaInfo config={config} salvar={salvarConfig} />}

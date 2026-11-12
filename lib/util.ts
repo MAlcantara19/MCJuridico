@@ -23,3 +23,14 @@ export function iniciais(nome: string) {
   const ultima = partes.length > 1 ? partes[partes.length - 1] : '';
   return (partes[0][0] + (ultima ? ultima[0] : '')).toUpperCase();
 }
+
+// Busca tolerante: ignora acento e maiúscula, e aceita singular/plural
+// ("certidao" acha "Certidões", "protocolos" acha "Protocolo").
+export function combina(texto: string, busca: string) {
+  const alvo = normalizar(texto);
+  const palavras = normalizar(busca).split(/\s+/).filter(Boolean);
+  return palavras.every((w) => {
+    const raiz = w.length > 5 ? w.slice(0, w.length - 2) : w.length > 3 ? w.slice(0, w.length - 1) : w;
+    return alvo.includes(raiz);
+  });
+}

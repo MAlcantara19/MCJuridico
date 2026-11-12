@@ -2,7 +2,7 @@
 // Pedidos que chegaram pelo formulário do site.
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { linkWhats } from '@/lib/util';
+import { combina, linkWhats } from '@/lib/util';
 
 type Solicitacao = { id: number; nome: string; contato: string; email: string; servico: string; mensagem: string; status: string; criado_em: string };
 const STATUS = ['nova', 'em andamento', 'concluída'];
@@ -31,7 +31,10 @@ export default function AbaSolicitacoes({ avisar }: { avisar: (m: string, e?: bo
     setLista((l) => l.filter((x) => x.id !== s.id));
   }
 
-  const visiveis = filtro === 'todas' ? lista : lista.filter((s) => s.status === filtro);
+  const [busca, setBusca] = useState('');
+  const termo = busca.trim();
+  const visiveis = (filtro === 'todas' ? lista : lista.filter((s) => s.status === filtro))
+    .filter((s) => !termo || combina(`${s.nome} ${s.contato} ${s.email} ${s.servico} ${s.mensagem}`, termo));
   const novas = lista.filter((s) => s.status === 'nova').length;
 
   return (
@@ -45,6 +48,7 @@ export default function AbaSolicitacoes({ avisar }: { avisar: (m: string, e?: bo
           <button key={s} className={`adm-btn peq${filtro === s ? ' pri' : ''}`} onClick={() => setFiltro(s)}>{s[0].toUpperCase() + s.slice(1)}</button>
         ))}
         <button className="adm-btn peq" onClick={carregar}>Atualizar</button>
+        <input type="search" value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar nome, serviço…" aria-label="Buscar solicitação" style={{ maxWidth: 260 }} />
       </div>
       {visiveis.length === 0 && <p className="adm-sub">Nenhuma solicitação aqui.</p>}
       <div className="adm-lista">

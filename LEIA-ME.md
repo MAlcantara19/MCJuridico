@@ -40,6 +40,13 @@ Rode `supabase/atualizacao-03.sql`. Ele:
 
 Rode `supabase/atualizacao-04.sql`. Deixa serviços, áreas, pacotes e regras iguais ao PDF "Tabela de Serviços".
 
+## Atualização 05 (Meus arquivos + busca)
+
+Rode `supabase/atualizacao-05.sql`.
+- Painel > Meus arquivos: pasta particular (PDFs, modelos, links do Drive), com pastas, favoritos e busca. Nada aparece no site.
+- Busca de serviços no site (campo na seção Serviços e lupa no menu).
+- Campo de busca em todas as listas do painel e nas solicitações.
+
 ## Onde mexer
 
 - Pelo painel `/admin` (sem código): textos, marca, cores, fonte, tema, logo, foto,

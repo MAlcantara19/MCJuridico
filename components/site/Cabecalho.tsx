@@ -4,7 +4,7 @@ import { useState } from 'react';
 import type { Config } from '@/lib/tipos';
 import { NOMES_SECOES } from '@/lib/tipos';
 import { iniciais, linkWhats } from '@/lib/util';
-import { IconeFechar, IconeMenu, IconeTema, IconeWhats } from './Icones';
+import { IconeBusca, IconeFechar, IconeMenu, IconeTema, IconeWhats } from './Icones';
 import { registrar } from '@/lib/estatisticas';
 
 // Seções que aparecem no menu (as outras ficam só na rolagem).
@@ -43,6 +43,20 @@ export default function Cabecalho({ config: c, secoes }: { config: Config; secoe
         </nav>
 
         <div className="cabecalho-acoes">
+          {secoes.includes('servicos') && (
+            <button
+              className="icone-btn"
+              aria-label="Buscar serviço"
+              title="Buscar serviço"
+              onClick={() => {
+                setAberto(false);
+                document.getElementById('servicos')?.scrollIntoView({ behavior: 'smooth' });
+                setTimeout(() => document.getElementById('busca-servicos')?.focus({ preventScroll: true }), 500);
+              }}
+            >
+              <IconeBusca />
+            </button>
+          )}
           <button className="icone-btn" onClick={alternarTema} aria-label="Alternar modo claro e escuro" title="Modo claro / escuro">
             <IconeTema />
           </button>

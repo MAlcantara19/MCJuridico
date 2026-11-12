@@ -58,7 +58,8 @@ export default function AbaResumo({ nome, irPara }: { nome: string; irPara: (aba
           <div className="adm-item">
             <h3>Atalhos</h3>
             <div className="adm-linha">
-              <button className="adm-btn" onClick={() => irPara('documentos')}>Enviar PDF</button>
+              <button className="adm-btn" onClick={() => irPara('arquivos')}>Meus arquivos</button>
+              <button className="adm-btn" onClick={() => irPara('documentos')}>PDF no site</button>
               <button className="adm-btn" onClick={() => irPara('servicos')}>Editar preços</button>
               <button className="adm-btn" onClick={() => irPara('visual')}>Mudar visual</button>
               <button className="adm-btn" onClick={() => irPara('perguntas')}>Respostas do assistente</button>

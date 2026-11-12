@@ -326,3 +326,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
 .area-icone { color: var(--ouro-texto); display: block; margin-bottom: 10px; }
 .titulo-area { display: flex; align-items: center; gap: 10px; font-family: var(--fonte-titulo); font-size: 1.7rem; font-weight: 600; color: var(--titulo); margin: 0 0 6px; padding-bottom: 10px; border-bottom: 1px solid var(--ouro); }
 .titulo-area svg { color: var(--ouro-texto); }
+
+/* ---------- Busca de serviços ---------- */
+.busca { display: flex; align-items: center; gap: 10px; max-width: 520px; border: 1px solid var(--linha); border-radius: 999px; padding: 0 18px; margin-bottom: 20px; background: var(--cartao); color: var(--suave); }
+.busca:focus-within { border-color: var(--ouro); }
+.busca input { flex: 1; min-width: 0; min-height: 48px; border: 0; background: transparent; color: var(--texto); font: inherit; outline: none; }
+.busca-resultados { margin-bottom: 8px; }
+.busca-item { background: none; border: 0; padding: 0; color: inherit; text-align: left; font: inherit; }
+.busca-item:hover .nome { color: var(--ouro-texto); }
+.busca-item small { display: block; color: var(--suave); font-size: 0.78rem; }
+.busca-resultados a { color: var(--ouro-texto); font-weight: 600; }
