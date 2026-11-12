@@ -454,3 +454,22 @@ a.selo-seg:hover { border-color: var(--ouro); color: #fff; }
 .st-toque { position: absolute; top: 0; bottom: 0; background: transparent; border: 0; z-index: 3; cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .st-toque.esq { left: 0; width: 33%; }
 .st-toque.dir { right: 0; width: 67%; }
+
+/* ---------- Avaliações ---------- */
+.estrelas { display: block; color: var(--ouro); letter-spacing: 2px; margin-bottom: 8px; font-size: 1rem; }
+.estrelas-vazias { opacity: 0.25; }
+.aval { display: grid; gap: 14px; text-align: left; }
+.aval label { display: grid; gap: 6px; font-size: 0.85rem; font-weight: 600; color: rgba(255, 255, 255, 0.85); }
+.aval input:not([type='checkbox']), .aval textarea { font: inherit; font-weight: 400; color: #fff; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 10px; padding: 12px 14px; min-height: 48px; }
+.aval textarea { min-height: 120px; resize: vertical; }
+.aval input:focus, .aval textarea:focus { outline: none; border-color: var(--ouro); }
+.aval .armadilha { position: absolute; left: -9999px; }
+.aval-check { display: flex !important; align-items: center; gap: 10px !important; font-weight: 400 !important; }
+.aval-check input { width: 20px; height: 20px; accent-color: var(--ouro); }
+.aval-estrelas { display: flex; justify-content: center; gap: 6px; margin-bottom: 6px; }
+.aval-estrelas button { background: none; border: 0; font-size: 2.6rem; line-height: 1; color: rgba(255, 255, 255, 0.25); cursor: pointer; padding: 4px; transition: transform 0.15s, color 0.15s; }
+.aval-estrelas button.cheia { color: var(--ouro); }
+.aval-estrelas button:hover { transform: scale(1.12); }
+.aval button.link-item { border: 0; font: inherit; font-weight: 600; cursor: pointer; width: 100%; }
+.aval-ok { display: grid; gap: 14px; justify-items: center; color: var(--ouro); }
+.aval-ok h2 { color: #fff; font-family: var(--fonte-titulo); font-size: 2rem; margin: 0; }

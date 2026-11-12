@@ -223,6 +223,16 @@ function FichaCliente({ id, config, navegar, clientes, servicos, avisar, voltar,
         <div className="adm-linha nao-imprimir">
           <button className="adm-btn pri" onClick={() => setOrcando(true)}>Gerar orçamento</button>
           <button className="adm-btn" onClick={() => navegar.novoRelatorio(id)}>Nova diligência / relatório</button>
+          {v.telefone && (
+            <a
+              className="adm-btn"
+              target="_blank"
+              rel="noopener noreferrer"
+              href={whatsDoTelefone(v.telefone, `Olá${v.responsavel ? `, ${v.responsavel.split(' ')[0]}` : ''}! Obrigada pela confiança no meu trabalho. Se puder, deixe sua avaliação, leva menos de 1 minuto: ${typeof window !== 'undefined' ? window.location.origin : ''}/avaliar?n=${encodeURIComponent(v.responsavel || v.nome)}`)}
+            >
+              Pedir avaliação
+            </a>
+          )}
           {pendentes.length > 0 && (
             <button className="adm-btn" onClick={() => cobrar(pendentes)}>Cobrar tudo ({brl(aReceber)})</button>
           )}

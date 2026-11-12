@@ -13,6 +13,7 @@ export default function Depoimentos({ depoimentos }: { depoimentos: Depoimento[]
           {depoimentos.map((d) => (
             <figure key={d.id} className="depoimento">
               <span className="aspas" aria-hidden="true">“</span>
+              {d.nota ? <span className="estrelas" aria-label={`Nota ${d.nota} de 5`}>{'★'.repeat(d.nota)}<span className="estrelas-vazias">{'★'.repeat(5 - d.nota)}</span></span> : null}
               <blockquote>{d.texto}</blockquote>
               <figcaption>
                 <strong>{d.nome}</strong>

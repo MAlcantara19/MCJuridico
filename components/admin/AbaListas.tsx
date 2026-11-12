@@ -72,7 +72,10 @@ export default function AbaListas({ tipo, config, salvar, avisar }: Props) {
       <div style={{ display: 'grid', gap: 16 }}>
         <div>
           <h2>Depoimentos</h2>
-          <p className="adm-sub">Peça aos clientes satisfeitos uma frase curta e autorização para publicar. A seção só aparece no site quando houver pelo menos um depoimento ativo.</p>
+          <p className="adm-sub">
+            As avaliações enviadas pelo link (botão “Pedir avaliação” na ficha do cliente) chegam aqui desmarcadas. Leia e marque “Aparece no site” para publicar.
+            Só publique quando o cliente tiver autorizado.
+          </p>
         </div>
         <CrudLista
           tabela="depoimentos"
@@ -82,6 +85,8 @@ export default function AbaListas({ tipo, config, salvar, avisar }: Props) {
           campos={[
             { nome: 'nome', rotulo: 'Nome' },
             { nome: 'cargo', rotulo: 'Cargo / cidade', },
+            { nome: 'nota', rotulo: 'Estrelas', tipo: 'select', numero: true, opcoes: [5, 4, 3, 2, 1].map((n) => ({ valor: n, rotulo: '★'.repeat(n) })) },
+            { nome: 'autoriza', rotulo: 'Cliente autorizou publicar', tipo: 'bool' },
             { nome: 'ativo', rotulo: 'Aparece no site', tipo: 'bool' },
             { nome: 'texto', rotulo: 'Depoimento', tipo: 'area' },
           ]}

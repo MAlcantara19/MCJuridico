@@ -60,7 +60,7 @@ export type Formacao = { id: number; titulo: string; instituicao: string; ano: s
 export type Documento = { id: number; titulo: string; descricao: string; pasta: string; arquivo_url: string; caminho: string; publico: boolean; ordem: number };
 export type Pergunta = { id: number; pergunta: string; resposta: string; palavras_chave: string; ordem: number; ativo: boolean };
 
-export type Depoimento = { id: number; nome: string; cargo: string; texto: string; ordem: number; ativo: boolean };
+export type Depoimento = { id: number; nome: string; cargo: string; texto: string; ordem: number; ativo: boolean; nota?: number | null };
 
 export type Dados = {
   config: Config;
