@@ -15,14 +15,23 @@ import AbaMaster from './AbaMaster';
 import AbaResumo from './AbaResumo';
 import AbaRelatorio from './AbaRelatorio';
 import AbaArquivos from './AbaArquivos';
+import AbaClientes from './gestao/AbaClientes';
+import AbaFinanceiro from './gestao/AbaFinanceiro';
+import AbaAgenda from './gestao/AbaAgenda';
+import BotaoInstalar from './BotaoInstalar';
 
 type Perfil = { email: string; nome: string; papel: 'master' | 'admin' };
 
-const ABAS = [
+const ABAS: { id: string; nome: string; soMaster?: boolean; grupo?: boolean }[] = [
   { id: 'resumo', nome: 'Resumo' },
+  { id: 'g-trabalho', nome: 'Trabalho', grupo: true },
+  { id: 'agenda', nome: 'Agenda' },
+  { id: 'clientes', nome: 'Clientes' },
+  { id: 'financeiro', nome: 'Financeiro' },
   { id: 'solicitacoes', nome: 'Solicitações' },
   { id: 'arquivos', nome: 'Meus arquivos' },
   { id: 'relatorio', nome: 'Relatório de diligência' },
+  { id: 'g-site', nome: 'Site', grupo: true },
   { id: 'visual', nome: 'Visual e layout' },
   { id: 'info', nome: 'Textos e contatos' },
   { id: 'servicos', nome: 'Serviços' },
@@ -41,6 +50,9 @@ export default function Painel() {
   const [semAcesso, setSemAcesso] = useState(false);
   const [config, setConfig] = useState<Config | null>(null);
   const [aba, setAba] = useState('resumo');
+  const [relatorioId, setRelatorioId] = useState<number | null>(null);
+  const [relatorioCliente, setRelatorioCliente] = useState<number | null>(null);
+  const [clienteAberto, setClienteAberto] = useState<number | null>(null);
   const [recuperando, setRecuperando] = useState(false);
   const [trocandoSenha, setTrocandoSenha] = useState(false);
   const [msg, setMsg] = useState<{ texto: string; erro?: boolean } | null>(null);
@@ -49,6 +61,11 @@ export default function Painel() {
     setMsg({ texto, erro });
     setTimeout(() => setMsg(null), erro ? 5000 : 2200);
   }
+
+  // Registra o service worker (necessário para instalar como app em alguns celulares)
+  useEffect(() => {
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js', { scope: '/admin' }).catch(() => {});
+  }, []);
 
   // Sessão de login
   useEffect(() => {
@@ -197,6 +214,7 @@ export default function Painel() {
           <small>{perfil.nome || perfil.email} · {perfil.papel === 'master' ? 'Master' : 'Administradora'}</small>
         </div>
         <div className="adm-linha">
+          <BotaoInstalar />
           <a className="adm-btn peq" style={{ color: '#fff', borderColor: 'rgba(255,255,255,.3)' }} href="/" target="_blank" rel="noopener noreferrer">Ver site</a>
           <button className="adm-btn peq" style={{ color: '#fff', borderColor: 'rgba(255,255,255,.3)' }} onClick={() => setTrocandoSenha(true)}>Trocar senha</button>
           <button className="adm-btn peq" style={{ color: '#fff', borderColor: 'rgba(255,255,255,.3)' }} onClick={sair}>Sair</button>
@@ -206,14 +224,39 @@ export default function Painel() {
       <div className="adm-corpo">
         <nav className="adm-abas" aria-label="Seções do painel">
           {abas.map((a) => (
-            <button key={a.id} className={`adm-aba${aba === a.id ? ' ativa' : ''}`} onClick={() => setAba(a.id)}>{a.nome}</button>
+            a.grupo
+              ? <span key={a.id} className="adm-grupo">{a.nome}</span>
+              : <button key={a.id} className={`adm-aba${aba === a.id ? ' ativa' : ''}`} onClick={() => { setAba(a.id); if (a.id === 'relatorio') { setRelatorioId(null); setRelatorioCliente(null); } if (a.id === 'clientes') setClienteAberto(null); }}>{a.nome}</button>
           ))}
         </nav>
 
         <section className="adm-card">
           {aba === 'resumo' && <AbaResumo nome={perfil.nome} irPara={setAba} />}
-          {aba === 'solicitacoes' && <AbaSolicitacoes avisar={avisar} />}
-          {aba === 'relatorio' && <AbaRelatorio config={config} />}
+          {aba === 'solicitacoes' && <AbaSolicitacoes avisar={avisar} irPara={setAba} />}
+          {aba === 'agenda' && <AbaAgenda avisar={avisar} />}
+          {aba === 'clientes' && (
+            <AbaClientes
+              key={clienteAberto ?? 'lista'}
+              avisar={avisar}
+              config={config}
+              abrirId={clienteAberto}
+              navegar={{
+                abrirRelatorio: (id) => { setRelatorioId(id); setRelatorioCliente(null); setAba('relatorio'); },
+                novoRelatorio: (cid) => { setRelatorioId(null); setRelatorioCliente(cid); setAba('relatorio'); },
+              }}
+            />
+          )}
+          {aba === 'financeiro' && <AbaFinanceiro avisar={avisar} config={config} />}
+          {aba === 'relatorio' && (
+            <AbaRelatorio
+              key={`${relatorioId}-${relatorioCliente}`}
+              config={config}
+              avisar={avisar}
+              relatorioId={relatorioId}
+              clienteInicial={relatorioCliente}
+              aoConcluir={() => { setRelatorioId(null); setRelatorioCliente(null); }}
+            />
+          )}
           {aba === 'arquivos' && <AbaArquivos avisar={avisar} />}
           {aba === 'depoimentos' && <AbaListas tipo="depoimentos" config={config} salvar={salvarConfig} avisar={avisar} />}
           {aba === 'visual' && <AbaVisual config={config} salvar={salvarConfig} avisar={avisar} />}

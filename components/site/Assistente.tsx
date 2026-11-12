@@ -64,7 +64,7 @@ export default function Assistente({ config: c, perguntas }: { config: Config; p
             <IconeAjuda />
           </button>
         )}
-        <a className="flut flut-whats" href={whats} target="_blank" rel="noopener noreferrer" onClick={() => registrar('whatsapp')} aria-label="Conversar no WhatsApp">
+        <a className="flut flut-whats" href={whats} target="_blank" rel="noopener noreferrer" onClick={() => registrar('whatsapp', false, 'Botão flutuante')} aria-label="Conversar no WhatsApp">
           <IconeWhats tamanho={28} />
         </a>
       </div>
@@ -96,7 +96,7 @@ export default function Assistente({ config: c, perguntas }: { config: Config; p
           <input value={texto} onChange={(e) => setTexto(e.target.value)} placeholder="Escreva sua dúvida" aria-label="Sua dúvida" />
           <button className="icone-btn escuro" type="submit" aria-label="Enviar"><IconeEnviar /></button>
         </form>
-        <a className="chat-whats" href={whats} target="_blank" rel="noopener noreferrer" onClick={() => registrar('whatsapp')}>Falar no WhatsApp</a>
+        <a className="chat-whats" href={whats} target="_blank" rel="noopener noreferrer" onClick={() => registrar('whatsapp', false, 'Assistente')}>Falar no WhatsApp</a>
       </div>
     </div>
   );

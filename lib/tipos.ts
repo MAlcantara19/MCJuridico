@@ -38,7 +38,18 @@ export type Config = {
   cor_destaque: string;
   fonte_titulo: string;
   tema_padrao: 'auto' | 'claro' | 'escuro';
-  hero_layout: 'classico' | 'com_foto';
+  hero_layout: 'com_foto' | 'foto_esquerda' | 'centro_com_imagem' | 'fundo' | 'classico';
+  hero_moldura: 'livre' | 'quadrado' | 'retrato' | 'circulo' | 'arco';
+  hero_ajuste: 'cobrir' | 'conter';
+  hero_efeito: 'nenhum' | 'brilho' | 'grade' | 'pontos' | 'linhas';
+  animacoes: boolean;
+  mensagem_servico: string;
+  mensagem_pacote: string;
+  mensagem_cobranca: string;
+  credito_nome: string;
+  credito_whatsapp: string;
+  credito_instagram: string;
+  credito_mensagem: string;
   secoes: Secao[];
 };
 

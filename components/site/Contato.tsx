@@ -1,6 +1,6 @@
 'use client';
 // Contatos + formulário de solicitação (salva no painel e abre o WhatsApp).
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import type { Dados } from '@/lib/tipos';
 import { linkWhats } from '@/lib/util';
 import { supabase } from '@/lib/supabase';
@@ -12,11 +12,13 @@ export default function Contato({ dados }: { dados: Dados }) {
   const [enviando, setEnviando] = useState(false);
   const [enviado, setEnviado] = useState(false);
   const [erro, setErro] = useState('');
+  const abertoEm = useRef(Date.now()); // robôs enviam o formulário em menos de 3 segundos
 
   async function enviar(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const f = new FormData(e.currentTarget);
     if (f.get('site')) return; // armadilha anti-robô
+    if (Date.now() - abertoEm.current < 3000) return;
     const pedido = {
       nome: String(f.get('nome') || '').trim(),
       contato: String(f.get('contato') || '').trim(),

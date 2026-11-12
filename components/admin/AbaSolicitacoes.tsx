@@ -7,7 +7,22 @@ import { combina, linkWhats } from '@/lib/util';
 type Solicitacao = { id: number; nome: string; contato: string; email: string; servico: string; mensagem: string; status: string; criado_em: string };
 const STATUS = ['nova', 'em andamento', 'concluída'];
 
-export default function AbaSolicitacoes({ avisar }: { avisar: (m: string, e?: boolean) => void }) {
+export default function AbaSolicitacoes({ avisar, irPara }: { avisar: (m: string, e?: boolean) => void; irPara?: (aba: string) => void }) {
+  // Transforma a solicitação em cliente + serviço em "Orçamento"
+  async function virarCliente(s: Solicitacao) {
+    const { data, error } = await supabase().from('clientes')
+      .insert({ nome: s.nome, telefone: s.contato, email: s.email, tipo: 'escritorio', observacoes: 'Veio pelo formulário do site.' })
+      .select('id').single();
+    if (error) return avisar(`Erro: ${error.message}. Rodou o atualizacao-06.sql?`, true);
+    await supabase().from('atendimentos').insert({
+      cliente_id: (data as { id: number }).id, servico: s.servico || 'A definir', descricao: s.mensagem,
+      status: 'orcamento', valor: 0, data: new Date().toISOString().slice(0, 10),
+    });
+    if (s.status === 'nova') await supabase().from('solicitacoes').update({ status: 'em andamento' }).eq('id', s.id);
+    avisar('Cliente criado com o pedido em Orçamento');
+    irPara?.('clientes');
+  }
+
   const [lista, setLista] = useState<Solicitacao[]>([]);
   const [filtro, setFiltro] = useState('todas');
 
@@ -66,6 +81,7 @@ export default function AbaSolicitacoes({ avisar }: { avisar: (m: string, e?: bo
                 {STATUS.map((x) => <option key={x} value={x}>{x}</option>)}
               </select>
               <a className="adm-btn peq" href={linkWhats(s.contato.replace(/\D/g, '').length <= 11 ? `55${s.contato}` : s.contato, `Olá, ${s.nome}! Aqui é a Maria Carolina, recebi sua solicitação pelo site.`)} target="_blank" rel="noopener noreferrer">Responder no WhatsApp</a>
+              <button className="adm-btn peq" onClick={() => virarCliente(s)}>Virar cliente</button>
               <button className="adm-btn peq perigo" onClick={() => excluir(s)}>Excluir</button>
             </div>
           </div>

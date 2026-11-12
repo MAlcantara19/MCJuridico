@@ -1,20 +1,46 @@
 'use client';
 // Serviços remotos, separados por categoria (abas) em formato de tabela de preços.
 import { useState } from 'react';
-import type { Dados, Servico } from '@/lib/tipos';
-import { IconeArea, IconeBusca } from './Icones';
-import { combina, linkWhats } from '@/lib/util';
+import type { Config, Dados, Servico } from '@/lib/tipos';
+import { registrar } from '@/lib/estatisticas';
+import { IconeArea, IconeBusca, IconeWhats } from './Icones';
+import { MSG_SERVICO_PADRAO, combina, linkWhats, preencher } from '@/lib/util';
 
-export function ListaPrecos({ servicos }: { servicos: Servico[] }) {
+// Lista de preços: cada linha abre o WhatsApp já com o nome do serviço na mensagem.
+export function linkServico(c: Config, s: Servico, area?: string) {
+  return linkWhats(c.whatsapp, preencher(c.mensagem_servico || MSG_SERVICO_PADRAO, { servico: s.nome, preco: s.preco, area }));
+}
+
+export function ListaPrecos({ servicos, config, area }: { servicos: Servico[]; config: Config; area?: string }) {
   return (
     <ul className="lista-precos">
-      {servicos.map((s) => (
-        <li key={s.id}>
-          <span className="nome">{s.nome}</span>
-          <span className="pontilhado" aria-hidden="true" />
-          <span className="preco">{s.preco}</span>
-        </li>
-      ))}
+      {servicos.map((s) => {
+        const conteudo = (
+          <>
+            <span className="nome">{s.nome}</span>
+            <span className="pontilhado" aria-hidden="true" />
+            <span className="preco">{s.preco}</span>
+          </>
+        );
+        // "incluso" não é um serviço para contratar sozinho
+        if (/inclus/i.test(s.preco)) return <li key={s.id}><span className="linha-servico">{conteudo}</span></li>;
+        return (
+          <li key={s.id}>
+            <a
+              className="linha-servico"
+              href={linkServico(config, s, area)}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => registrar('whatsapp', false, s.nome)}
+              title="Pedir este serviço pelo WhatsApp"
+            >
+              {conteudo}
+              <span className="linha-whats" aria-hidden="true"><IconeWhats tamanho={16} /></span>
+              <span className="sr-only"> (pedir pelo WhatsApp)</span>
+            </a>
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -33,17 +59,6 @@ export default function Servicos({ dados }: { dados: Dados }) {
   const resultados = termo
     ? dados.servicos.filter((s) => combina(`${s.nome} ${nomeArea(s.categoria_id)?.nome ?? ''}`, termo))
     : [];
-
-  function irPara(categoriaId: number | null) {
-    const cat = nomeArea(categoriaId);
-    setBusca('');
-    if (cat?.modalidade === 'presencial') {
-      document.getElementById('correspondente')?.scrollIntoView({ behavior: 'smooth' });
-    } else if (cat) {
-      setAbaId(cat.id);
-      document.getElementById('painel-servicos')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-  }
 
   return (
     <section id="servicos" className="secao">
@@ -69,17 +84,12 @@ export default function Servicos({ dados }: { dados: Dados }) {
         {termo && (
           <div className="busca-resultados" aria-live="polite">
             {resultados.length > 0 ? (
-              <ul className="lista-precos">
+              <>
                 {resultados.map((s) => (
-                  <li key={s.id}>
-                    <button className="busca-item" onClick={() => irPara(s.categoria_id)}>
-                      <span className="nome">{s.nome}<small>{nomeArea(s.categoria_id)?.nome}</small></span>
-                    </button>
-                    <span className="pontilhado" aria-hidden="true" />
-                    <span className="preco">{s.preco}</span>
-                  </li>
+                  <ListaPrecos key={s.id} servicos={[s]} config={dados.config} area={nomeArea(s.categoria_id)?.nome} />
                 ))}
-              </ul>
+                <p className="nota" style={{ marginTop: 10 }}>Toque no serviço para pedir pelo WhatsApp.</p>
+              </>
             ) : (
               <p className="nota">
                 Nenhum serviço com “{busca}”.{' '}
@@ -111,8 +121,9 @@ export default function Servicos({ dados }: { dados: Dados }) {
             <h3>{atual.nome}</h3>
             <p className="descricao">{atual.descricao}</p>
             {dados.config.nota_servicos && <p className="nota">{dados.config.nota_servicos}</p>}
+            <p className="nota dica-toque"><IconeWhats tamanho={14} /> Toque em um serviço para pedir pelo WhatsApp.</p>
           </div>
-          <ListaPrecos servicos={lista} />
+          <ListaPrecos servicos={lista} config={dados.config} area={atual.nome} />
         </div>
         </>)}
       </div>

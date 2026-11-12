@@ -4,6 +4,8 @@ import { useState } from 'react';
 import type { Config, Secao } from '@/lib/tipos';
 import { NOMES_SECOES, juntarSecoes } from '@/lib/tipos';
 import { enviarArquivo } from '@/lib/arquivos';
+import Topo from '@/components/site/Topo';
+import { estiloMarca } from '@/components/site/PaginaSimples';
 
 const FONTES = ['Cormorant Garamond', 'Playfair Display', 'Libre Baskerville', 'Marcellus'];
 
@@ -26,6 +28,10 @@ export default function AbaVisual({ config, salvar, avisar }: {
     fonte_titulo: config.fonte_titulo || FONTES[0],
     tema_padrao: config.tema_padrao || 'claro',
     hero_layout: config.hero_layout || 'com_foto',
+    hero_moldura: config.hero_moldura || 'quadrado',
+    hero_ajuste: config.hero_ajuste || 'cobrir',
+    hero_efeito: config.hero_efeito || 'brilho',
+    animacoes: config.animacoes !== false,
     logo_url: config.logo_url || '',
     foto_url: config.foto_url || '',
   });
@@ -33,7 +39,7 @@ export default function AbaVisual({ config, salvar, avisar }: {
   const [secoes, setSecoes] = useState<Secao[]>(juntarSecoes(config.secoes));
   const [enviando, setEnviando] = useState('');
 
-  function mudar(campo: string, valor: string) { setV((x) => ({ ...x, [campo]: valor })); }
+  function mudar(campo: string, valor: string | boolean) { setV((x) => ({ ...x, [campo]: valor })); }
 
   async function subirImagem(campo: 'logo_url' | 'foto_url', arquivo?: File) {
     if (!arquivo) return;
@@ -99,15 +105,58 @@ export default function AbaVisual({ config, salvar, avisar }: {
               <option value="auto">Automático (igual ao celular)</option>
             </select>
           </label>
-          <label>
-            Layout do topo
-            <select value={v.hero_layout} onChange={(e) => mudar('hero_layout', e.target.value)}>
-              <option value="com_foto">Com foto em arco (lado direito)</option>
-              <option value="classico">Clássico centralizado (sem foto)</option>
-            </select>
-          </label>
         </div>
         <p style={{ fontFamily: v.fonte_titulo, fontSize: '2rem', margin: '4px 0 0', color: v.cor_primaria }}>{config.nome}</p>
+      </div>
+
+      <div className="adm-item">
+        <h3>Apresentação (topo do site)</h3>
+        <div className="adm-grade">
+          <label>
+            Formato
+            <select value={v.hero_layout} onChange={(e) => mudar('hero_layout', e.target.value)}>
+              <option value="com_foto">Imagem à direita</option>
+              <option value="foto_esquerda">Imagem à esquerda</option>
+              <option value="centro_com_imagem">Centralizado com imagem em cima</option>
+              <option value="fundo">Imagem no fundo (tela cheia)</option>
+              <option value="classico">Centralizado só com texto</option>
+            </select>
+          </label>
+          <label>
+            Moldura da imagem
+            <select value={v.hero_moldura} onChange={(e) => mudar('hero_moldura', e.target.value)} disabled={v.hero_layout === 'fundo' || v.hero_layout === 'classico'}>
+              <option value="livre">Sem moldura (ideal para logo)</option>
+              <option value="quadrado">Quadrado com contorno dourado</option>
+              <option value="retrato">Retrato (vertical) com contorno</option>
+              <option value="circulo">Círculo com anel dourado</option>
+              <option value="arco">Arco</option>
+            </select>
+          </label>
+          <label>
+            Ajuste da imagem
+            <select value={v.hero_ajuste} onChange={(e) => mudar('hero_ajuste', e.target.value)}>
+              <option value="cobrir">Preencher (corta as bordas, bom para foto)</option>
+              <option value="conter">Mostrar inteira (bom para logo)</option>
+            </select>
+          </label>
+          <label>
+            Efeito de fundo
+            <select value={v.hero_efeito} onChange={(e) => mudar('hero_efeito', e.target.value)}>
+              <option value="nenhum">Nenhum</option>
+              <option value="brilho">Brilho dourado suave</option>
+              <option value="grade">Grade fina</option>
+              <option value="pontos">Pontilhado</option>
+              <option value="linhas">Linhas diagonais</option>
+            </select>
+          </label>
+          <label className="adm-check"><input type="checkbox" checked={v.animacoes} onChange={(e) => mudar('animacoes', e.target.checked)} /> Animações suaves (imagem flutuando e seções aparecendo ao rolar)</label>
+        </div>
+        <p className="adm-dica">Prévia (muda na hora; só vai para o site quando clicar em Salvar visual):</p>
+        <div className="previa-topo">
+          <div className="site" style={estiloMarca({ ...config, ...v } as Config)}>
+            <Topo config={{ ...config, ...v } as Config} />
+          </div>
+        </div>
       </div>
 
       <div className="adm-item">
@@ -121,7 +170,7 @@ export default function AbaVisual({ config, salvar, avisar }: {
             {v.logo_url && <button className="adm-btn peq perigo" onClick={() => mudar('logo_url', '')}>Remover logo</button>}
           </div>
           <div style={{ display: 'grid', gap: 8 }}>
-            <strong style={{ fontSize: '0.85rem' }}>Foto do topo (vertical, 900×1200)</strong>
+            <strong style={{ fontSize: '0.85rem' }}>Imagem do topo (foto ou logo)</strong>
             {v.foto_url && <img src={v.foto_url} alt="Foto" className="adm-img" style={{ borderRadius: '44px 44px 6px 6px', height: 110 }} />}
             <input type="file" accept="image/*" onChange={(e) => subirImagem('foto_url', e.target.files?.[0])} />
             {enviando === 'foto_url' && <span className="adm-dica">Enviando…</span>}

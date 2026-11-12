@@ -47,6 +47,34 @@ Rode `supabase/atualizacao-05.sql`.
 - Busca de serviços no site (campo na seção Serviços e lupa no menu).
 - Campo de busca em todas as listas do painel e nas solicitações.
 
+## Atualização 06 (Agenda, Clientes, Financeiro e app no celular)
+
+Rode `supabase/atualizacao-06.sql`.
+- Painel > Agenda: prazos, diligências e audiências, com atrasados em vermelho
+- Painel > Clientes: ficha de cada escritório/cliente com serviços, total e a receber
+- Painel > Financeiro: faturado, recebido, a receber, gráfico de 12 meses e rankings
+- Solicitações > "Virar cliente": cria o cliente e o pedido em Orçamento
+- Painel instalável no celular (botão "Instalar app"); o ícone usa a logo de Visual e layout
+
+## Atualização 07 (apresentação, WhatsApp por serviço, créditos e segurança)
+
+Rode `supabase/atualizacao-07.sql`.
+- Visual e layout > Apresentação: 5 formatos, 5 molduras, ajuste da imagem, 5 efeitos e animações, com prévia
+- Cada serviço e pacote abre o WhatsApp com o nome dele na mensagem (textos em Textos e contatos)
+- Resumo: "O que mais levou ao WhatsApp"
+- Rodapé: selos de segurança reais e "Desenvolvido por" (editável na aba Master)
+- Cabeçalhos de segurança (HSTS, CSP, anti-clickjacking) em next.config.ts
+
+## Atualização 08 (diligência completa, orçamento, cobrança, planilha e stories)
+
+Rode `supabase/atualizacao-08.sql` (depois do 06 e do 07).
+- Relatório > Concluir diligência: salva o relatório com fotos na ficha do cliente e lança o serviço no Financeiro
+- Cliente > Gerar orçamento: marca serviços da tabela, gera PDF e envia resumo no WhatsApp
+- Botão "Cobrar no WhatsApp" nos serviços a receber (mensagem editável em Textos e contatos)
+- Financeiro > Baixar planilha (abre no Excel)
+- /story: telas verticais para postar no Instagram
+- Master: contador de cliques no "Quero um site assim"
+
 ## Onde mexer
 
 - Pelo painel `/admin` (sem código): textos, marca, cores, fonte, tema, logo, foto,

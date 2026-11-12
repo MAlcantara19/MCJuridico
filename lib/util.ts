@@ -34,3 +34,11 @@ export function combina(texto: string, busca: string) {
     return alvo.includes(raiz);
   });
 }
+
+// Troca {servico}, {preco} etc. pelos valores (mensagens prontas do WhatsApp)
+export function preencher(modelo: string, valores: Record<string, string | undefined>) {
+  return (modelo || '').replace(/\{(\w+)\}/g, (_, k) => valores[k] ?? '').replace(/\(\s*\)/g, '').replace(/\s{2,}/g, ' ').trim();
+}
+
+export const MSG_SERVICO_PADRAO = 'Olá, Maria Carolina! Vim pelo site e tenho interesse no serviço *{servico}* ({area}), valor de referência {preco}. Pode me passar mais detalhes?';
+export const MSG_PACOTE_PADRAO = 'Olá, Maria Carolina! Vim pelo site e tenho interesse no *{pacote}* ({horas}, {preco}). Como faço para contratar?';
