@@ -118,6 +118,15 @@ create table if not exists perfis (
   ordem int default 0
 );
 
+create table if not exists depoimentos (
+  id bigint generated always as identity primary key,
+  nome text not null default '',
+  cargo text default '',
+  texto text default '',
+  ordem int default 0,
+  ativo boolean default true
+);
+
 -- Contador de visitas e cliques (sem dados pessoais).
 create table if not exists cliques (
   id bigint generated always as identity primary key,
@@ -163,12 +172,13 @@ alter table perguntas enable row level security;
 alter table solicitacoes enable row level security;
 alter table perfis enable row level security;
 alter table cliques enable row level security;
+alter table depoimentos enable row level security;
 
 -- Conteúdo público: todo mundo lê, só admin/master altera.
 do $$
 declare t text;
 begin
-  foreach t in array array['configuracoes','categorias','servicos','pacotes','formacoes','perguntas'] loop
+  foreach t in array array['configuracoes','categorias','servicos','pacotes','formacoes','perguntas','depoimentos'] loop
     execute format('drop policy if exists "leitura publica" on %I', t);
     execute format('drop policy if exists "admin altera" on %I', t);
     execute format('create policy "leitura publica" on %I for select using (true)', t);
@@ -202,7 +212,7 @@ create policy "master altera" on perfis for all to authenticated using (public.e
 
 -- Permissões de acesso pela API
 grant usage on schema public to anon, authenticated;
-grant select on configuracoes, categorias, servicos, pacotes, formacoes, documentos, perguntas to anon;
+grant select on configuracoes, categorias, servicos, pacotes, formacoes, documentos, perguntas, depoimentos to anon;
 grant insert on solicitacoes, cliques to anon;
 grant all on all tables in schema public to authenticated;
 grant usage, select on all sequences in schema public to anon, authenticated;

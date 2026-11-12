@@ -41,6 +41,8 @@ export type Formacao = { id: number; titulo: string; instituicao: string; ano: s
 export type Documento = { id: number; titulo: string; descricao: string; pasta: string; arquivo_url: string; caminho: string; publico: boolean; ordem: number };
 export type Pergunta = { id: number; pergunta: string; resposta: string; palavras_chave: string; ordem: number; ativo: boolean };
 
+export type Depoimento = { id: number; nome: string; cargo: string; texto: string; ordem: number; ativo: boolean };
+
 export type Dados = {
   config: Config;
   categorias: Categoria[];
@@ -49,6 +51,7 @@ export type Dados = {
   formacoes: Formacao[];
   documentos: Documento[];
   perguntas: Pergunta[];
+  depoimentos: Depoimento[];
 };
 
 // Seções da página, na ordem padrão.
@@ -57,6 +60,7 @@ export const SECOES_PADRAO: Secao[] = [
   { id: 'correspondente', visivel: true },
   { id: 'pacotes', visivel: true },
   { id: 'como_funciona', visivel: true },
+  { id: 'depoimentos', visivel: true },
   { id: 'sobre', visivel: true },
   { id: 'documentos', visivel: true },
   { id: 'perguntas', visivel: true },
@@ -69,8 +73,24 @@ export const NOMES_SECOES: Record<string, string> = {
   correspondente: 'Correspondente',
   pacotes: 'Pacotes',
   como_funciona: 'Como funciona',
+  depoimentos: 'Depoimentos',
   sobre: 'Sobre',
   documentos: 'Documentos',
   perguntas: 'Dúvidas',
   contato: 'Contato',
 };
+
+// Junta as seções salvas no banco com seções novas que surgirem em atualizações.
+export function juntarSecoes(salvas: Secao[] | null | undefined): Secao[] {
+  const base = Array.isArray(salvas) && salvas.length ? salvas : SECOES_PADRAO;
+  const novas = SECOES_PADRAO.filter((s) => !base.some((b) => b.id === s.id));
+  // Seção nova entra logo depois de onde ela fica no padrão
+  const resultado = [...base];
+  for (const n of novas) {
+    const idxPadrao = SECOES_PADRAO.findIndex((s) => s.id === n.id);
+    const anterior = SECOES_PADRAO[idxPadrao - 1];
+    const pos = anterior ? resultado.findIndex((s) => s.id === anterior.id) + 1 : 0;
+    resultado.splice(pos, 0, n);
+  }
+  return resultado;
+}

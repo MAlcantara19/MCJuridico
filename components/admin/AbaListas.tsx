@@ -5,7 +5,7 @@ import CrudLista from './CrudLista';
 import FormConfig from './FormConfig';
 
 type Props = {
-  tipo: 'pacotes' | 'perguntas' | 'formacoes';
+  tipo: 'pacotes' | 'perguntas' | 'formacoes' | 'depoimentos';
   config: Config;
   salvar: (p: Partial<Config>) => Promise<void>;
   avisar: (m: string, e?: boolean) => void;
@@ -61,6 +61,29 @@ export default function AbaListas({ tipo, config, salvar, avisar }: Props) {
             { nome: 'palavras_chave', rotulo: 'Palavras-chave (separadas por espaço)' },
             { nome: 'ativo', rotulo: 'Ativa', tipo: 'bool' },
             { nome: 'resposta', rotulo: 'Resposta', tipo: 'area' },
+          ]}
+        />
+      </div>
+    );
+  }
+
+  if (tipo === 'depoimentos') {
+    return (
+      <div style={{ display: 'grid', gap: 16 }}>
+        <div>
+          <h2>Depoimentos</h2>
+          <p className="adm-sub">Peça aos clientes satisfeitos uma frase curta e autorização para publicar. A seção só aparece no site quando houver pelo menos um depoimento ativo.</p>
+        </div>
+        <CrudLista
+          tabela="depoimentos"
+          avisar={avisar}
+          textoNovo="Novo depoimento"
+          novo={{ nome: 'Nome do cliente', cargo: '', texto: '' }}
+          campos={[
+            { nome: 'nome', rotulo: 'Nome' },
+            { nome: 'cargo', rotulo: 'Cargo / cidade', },
+            { nome: 'ativo', rotulo: 'Aparece no site', tipo: 'bool' },
+            { nome: 'texto', rotulo: 'Depoimento', tipo: 'area' },
           ]}
         />
       </div>

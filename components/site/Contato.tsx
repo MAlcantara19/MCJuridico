@@ -91,6 +91,10 @@ export default function Contato({ dados }: { dados: Dados }) {
                 </select>
               </label>
               <label className="inteiro">Mensagem<textarea name="mensagem" required placeholder="Descreva o que precisa, prazos e cidade (se for presencial)." /></label>
+              <label className="inteiro consentimento">
+                <input type="checkbox" name="aceite" required />
+                <span>Concordo com o uso dos meus dados para responder a este pedido, conforme a <a href="/privacidade" target="_blank">política de privacidade</a>.</span>
+              </label>
               <input className="armadilha" name="site" tabIndex={-1} autoComplete="off" aria-hidden="true" />
               {erro && <p className="inteiro" role="alert" style={{ margin: 0, color: '#b3261e' }}>{erro}</p>}
               <div className="inteiro">

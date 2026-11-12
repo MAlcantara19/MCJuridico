@@ -62,6 +62,11 @@ export default function AbaResumo({ nome, irPara }: { nome: string; irPara: (aba
               <button className="adm-btn" onClick={() => irPara('servicos')}>Editar preços</button>
               <button className="adm-btn" onClick={() => irPara('visual')}>Mudar visual</button>
               <button className="adm-btn" onClick={() => irPara('perguntas')}>Respostas do assistente</button>
+              <button className="adm-btn" onClick={() => irPara('relatorio')}>Relatório de diligência</button>
+              <button className="adm-btn" onClick={async () => {
+                const link = `${window.location.origin}/links`;
+                try { await navigator.clipboard.writeText(link); alert(`Link copiado: ${link}`); } catch { prompt('Copie o link da bio:', link); }
+              }}>Copiar link da bio</button>
             </div>
           </div>
         </>

@@ -2,7 +2,7 @@
 // Junta todas as partes da página pública, na ordem escolhida no painel.
 import { useEffect, type CSSProperties, type ReactNode } from 'react';
 import type { Dados } from '@/lib/tipos';
-import { SECOES_PADRAO } from '@/lib/tipos';
+import { juntarSecoes } from '@/lib/tipos';
 import Cabecalho from './Cabecalho';
 import Topo from './Topo';
 import Servicos from './Servicos';
@@ -15,6 +15,7 @@ import Perguntas from './Perguntas';
 import Contato from './Contato';
 import Rodape from './Rodape';
 import Assistente from './Assistente';
+import Depoimentos from './Depoimentos';
 
 export default function Site({ dados }: { dados: Dados }) {
   const c = dados.config;
@@ -35,17 +36,19 @@ export default function Site({ dados }: { dados: Dados }) {
   } as CSSProperties;
 
   // Seções visíveis, na ordem do painel. "Documentos" só aparece se houver arquivos.
-  const ordem = (Array.isArray(c.secoes) && c.secoes.length ? c.secoes : SECOES_PADRAO)
+  const ordem = juntarSecoes(c.secoes)
     .filter((s) => s.visivel)
     .map((s) => s.id)
     .filter((id) => id !== 'documentos' || dados.documentos.length > 0)
-    .filter((id) => id !== 'perguntas' || dados.perguntas.length > 0);
+    .filter((id) => id !== 'perguntas' || dados.perguntas.length > 0)
+    .filter((id) => id !== 'depoimentos' || dados.depoimentos.length > 0);
 
   const blocos: Record<string, ReactNode> = {
     servicos: <Servicos dados={dados} />,
     correspondente: <Correspondente dados={dados} />,
     pacotes: <Pacotes dados={dados} />,
     como_funciona: <ComoFunciona config={c} />,
+    depoimentos: <Depoimentos depoimentos={dados.depoimentos} />,
     sobre: <Sobre dados={dados} />,
     documentos: <Documentos documentos={dados.documentos} />,
     perguntas: <Perguntas perguntas={dados.perguntas} />,

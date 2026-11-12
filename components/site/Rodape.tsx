@@ -25,7 +25,7 @@ export default function Rodape({ config: c }: { config: Config }) {
         </div>
         <div className="rodape-base">
           <span>© {ano} {c.nome}. {c.aviso_legal}</span>
-          {c.rodape_credito && <span>{c.rodape_credito}</span>}
+          <span><a href="/privacidade">Privacidade</a>{c.rodape_credito ? ` · ${c.rodape_credito}` : ''}</span>
         </div>
       </div>
     </footer>

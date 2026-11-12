@@ -2,7 +2,7 @@
 // Cores, fonte, tema, layout do topo, logo, foto e ordem das seções.
 import { useState } from 'react';
 import type { Config, Secao } from '@/lib/tipos';
-import { NOMES_SECOES, SECOES_PADRAO } from '@/lib/tipos';
+import { NOMES_SECOES, juntarSecoes } from '@/lib/tipos';
 import { enviarArquivo } from '@/lib/arquivos';
 
 const FONTES = ['Cormorant Garamond', 'Playfair Display', 'Libre Baskerville', 'Marcellus'];
@@ -29,9 +29,8 @@ export default function AbaVisual({ config, salvar, avisar }: {
     logo_url: config.logo_url || '',
     foto_url: config.foto_url || '',
   });
-  const base = Array.isArray(config.secoes) && config.secoes.length ? config.secoes : SECOES_PADRAO;
   // Garante que seções novas apareçam mesmo em bancos antigos
-  const [secoes, setSecoes] = useState<Secao[]>([...base, ...SECOES_PADRAO.filter((s) => !base.some((b) => b.id === s.id))]);
+  const [secoes, setSecoes] = useState<Secao[]>(juntarSecoes(config.secoes));
   const [enviando, setEnviando] = useState('');
 
   function mudar(campo: string, valor: string) { setV((x) => ({ ...x, [campo]: valor })); }

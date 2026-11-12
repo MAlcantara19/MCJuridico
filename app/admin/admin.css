@@ -50,3 +50,33 @@
 .adm-img { width: 88px; height: 88px; border-radius: 50%; object-fit: cover; border: 1px solid var(--l); }
 .adm-badge { font-size: 0.75rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: color-mix(in srgb, var(--o) 20%, transparent); }
 .adm-dica { font-size: 0.82rem; color: var(--m); margin: 4px 0 0; }
+
+/* ===== Relatório de diligência (prévia e PDF) ===== */
+.relatorio { background: #fff; color: #121a2b; border: 1px solid var(--l); border-radius: 10px; padding: 40px; font-family: 'Montserrat', system-ui, sans-serif; font-size: 13px; line-height: 1.55; }
+.rel-topo { display: flex; justify-content: space-between; gap: 20px; border-bottom: 2px solid var(--rel-ouro); padding-bottom: 14px; margin-bottom: 24px; color: #4b5873; font-size: 12px; }
+.rel-marca { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 24px; font-weight: 700; color: var(--rel-cor); }
+.rel-contato { text-align: right; }
+.relatorio h1 { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 28px; color: var(--rel-cor); margin: 0 0 16px; }
+.relatorio h2 { font-size: 13px; color: var(--rel-cor); margin: 22px 0 6px; border-bottom: 1px solid #dfe3ea; padding-bottom: 4px; }
+.rel-tabela { width: 100%; border-collapse: collapse; }
+.rel-tabela th { text-align: left; width: 140px; color: #4b5873; font-weight: 600; padding: 6px 10px 6px 0; vertical-align: top; }
+.rel-tabela td { padding: 6px 0; border-bottom: 1px solid #eef0f4; }
+.rel-texto { white-space: pre-line; margin: 0; }
+.rel-fotos { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.rel-fotos figure { margin: 0; break-inside: avoid; }
+.rel-fotos img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 4px; }
+.rel-fotos figcaption { font-size: 11px; color: #4b5873; margin-top: 4px; }
+.rel-assinatura { margin-top: 48px; text-align: center; break-inside: avoid; }
+.rel-linha { width: 260px; border-top: 1px solid #121a2b; margin: 0 auto 6px; }
+.rel-assinatura small { display: block; color: #4b5873; margin-top: 10px; font-size: 10px; }
+@media (max-width: 600px) { .relatorio { padding: 20px; } .rel-fotos { grid-template-columns: 1fr; } .rel-topo { flex-direction: column; } .rel-contato { text-align: left; } }
+
+@media print {
+  @page { size: A4; margin: 14mm; }
+  body * { visibility: hidden; }
+  .relatorio, .relatorio * { visibility: visible; }
+  .relatorio { position: absolute; left: 0; top: 0; width: 100%; border: 0; padding: 0; border-radius: 0; }
+  .rel-fotos { grid-template-columns: 1fr 1fr; }
+  .adm-msg { display: none; }
+}
+.nao-imprimir {}

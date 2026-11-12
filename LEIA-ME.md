@@ -19,6 +19,15 @@ Next.js + Supabase + Vercel.
 9. Para o "Esqueci minha senha" funcionar: Supabase > Authentication > URL Configuration,
    coloque o link da Vercel em Site URL e adicione `https://SEU-LINK/admin` em Redirect URLs.
 
+## Atualização 02 (telas novas)
+
+Se o banco já estava instalado, rode `supabase/atualizacao-02.sql` no SQL Editor (cria a tabela de depoimentos).
+
+- `/links`: página para a bio do Instagram
+- `/privacidade`: política de privacidade (LGPD), ligada ao formulário e ao rodapé
+- Painel > Relatório de diligência: gera PDF com fotos para mandar ao escritório
+- Painel > Depoimentos: seção nova no site (aparece quando houver depoimento ativo)
+
 ## Onde mexer
 
 - Pelo painel `/admin` (sem código): textos, marca, cores, fonte, tema, logo, foto,
