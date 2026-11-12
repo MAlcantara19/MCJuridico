@@ -24,6 +24,17 @@ export default function AbaMaster({ config, salvar, avisar }: {
     })();
   }, []);
 
+  // Testa o lembrete diário por e-mail
+  const [testando, setTestando] = useState(false);
+  async function testarLembrete() {
+    setTestando(true);
+    const { data } = await supabase().auth.getSession();
+    const r = await fetch('/api/lembrete?teste=1', { headers: { Authorization: `Bearer ${data.session?.access_token ?? ''}` } });
+    const j = await r.json().catch(() => ({}));
+    setTestando(false);
+    avisar(j.ok ? 'E-mail de teste enviado. Confira a caixa de entrada (e o spam).' : `Não enviou: ${j.erro || r.status}`, !j.ok);
+  }
+
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       <div className="adm-grade">
@@ -66,6 +77,15 @@ export default function AbaMaster({ config, salvar, avisar }: {
 
         ]}
       />
+
+      <div className="adm-item">
+        <h3>Lembrete diário por e-mail</h3>
+        <p className="adm-dica" style={{ margin: 0 }}>
+          Todo dia, entre 18h e 19h, chega um e-mail com os compromissos de amanhã, os atrasados, as cobranças e os pedidos novos.
+          Precisa das variáveis do lembrete na Vercel (veja o LEIA-ME).
+        </p>
+        <div><button className="adm-btn pri" onClick={testarLembrete} disabled={testando}>{testando ? 'Enviando…' : 'Enviar e-mail de teste agora'}</button></div>
+      </div>
 
       <FormConfig
         titulo="Crédito do desenvolvedor (rodapé)"

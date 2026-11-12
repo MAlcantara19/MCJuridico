@@ -75,6 +75,16 @@ Rode `supabase/atualizacao-08.sql` (depois do 06 e do 07).
 - /story: telas verticais para postar no Instagram
 - Master: contador de cliques no "Quero um site assim"
 
+## Atualização 09 (avaliações e lembrete diário)
+
+1. Rode `supabase/atualizacao-09.sql`.
+2. Avaliações: na ficha do cliente, botão "Pedir avaliação". A avaliação chega desativada em Depoimentos; marque "Aparece no site" para publicar.
+3. Lembrete por e-mail (grátis):
+   - Crie conta em resend.com com o e-mail que vai receber os lembretes e gere uma API Key.
+   - Na Vercel > Settings > Environment Variables, adicione SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY, LEMBRETE_EMAIL e CRON_SECRET (veja .env.example) e faça Redeploy.
+   - Teste em Painel > Master > "Enviar e-mail de teste agora".
+   - O envio automático é todo dia entre 18h e 19h (horário de Brasília), pelo vercel.json.
+
 ## Onde mexer
 
 - Pelo painel `/admin` (sem código): textos, marca, cores, fonte, tema, logo, foto,
