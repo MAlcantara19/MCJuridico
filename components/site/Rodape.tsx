@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import type { Config } from '@/lib/tipos';
 import { linkWhats } from '@/lib/util';
+import { MSG_GERAL_PADRAO, msgCredito } from '@/lib/mensagens';
 import { registrar } from '@/lib/estatisticas';
 import { IconeCadeado, IconeEmail, IconeEscudo, IconeInsta, IconeWhats } from './Icones';
 
@@ -22,7 +23,7 @@ export default function Rodape({ config: c }: { config: Config }) {
             <div>{c.nome} · {c.profissao}</div>
           </div>
           <div className="rodape-links">
-            <a className="icone-btn" href={linkWhats(c.whatsapp, c.mensagem_whatsapp)} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" onClick={() => registrar('whatsapp', false, 'Rodapé')}><IconeWhats tamanho={20} /></a>
+            <a className="icone-btn" href={linkWhats(c.whatsapp, c.mensagem_whatsapp || MSG_GERAL_PADRAO)} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" onClick={() => registrar('whatsapp', false, 'Rodapé')}><IconeWhats tamanho={20} /></a>
             {insta && (
               <a className="icone-btn" href={`https://instagram.com/${insta}`} target="_blank" rel="noopener noreferrer" aria-label="Instagram"><IconeInsta tamanho={20} /></a>
             )}
@@ -57,7 +58,7 @@ export default function Rodape({ config: c }: { config: Config }) {
             <span className="credito-links">
               {c.credito_whatsapp && (
                 <a
-                  href={linkWhats(c.credito_whatsapp, c.credito_mensagem || `Olá! Vi o site ${c.marca || c.nome} e tenho interesse em criar um site assim também.`)}
+                  href={linkWhats(c.credito_whatsapp, c.credito_mensagem || msgCredito(c.marca || 'MC Jurídico', c.nome))}
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={() => registrar('credito')}

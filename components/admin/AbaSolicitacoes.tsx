@@ -2,7 +2,9 @@
 // Pedidos que chegaram pelo formulário do site.
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
-import { combina, linkWhats } from '@/lib/util';
+import { combina } from '@/lib/util';
+import { whatsDoTelefone } from '@/lib/gestao';
+import { msgRespostaSolicitacao } from '@/lib/mensagens';
 
 type Solicitacao = { id: number; nome: string; contato: string; email: string; servico: string; mensagem: string; status: string; criado_em: string };
 const STATUS = ['nova', 'em andamento', 'concluída'];
@@ -80,7 +82,7 @@ export default function AbaSolicitacoes({ avisar, irPara }: { avisar: (m: string
               <select value={s.status} onChange={(e) => mudarStatus(s, e.target.value)} style={{ width: 'auto' }} aria-label="Status">
                 {STATUS.map((x) => <option key={x} value={x}>{x}</option>)}
               </select>
-              <a className="adm-btn peq" href={linkWhats(s.contato.replace(/\D/g, '').length <= 11 ? `55${s.contato}` : s.contato, `Olá, ${s.nome}! Aqui é a Maria Carolina, recebi sua solicitação pelo site.`)} target="_blank" rel="noopener noreferrer">Responder no WhatsApp</a>
+              <a className="adm-btn peq" href={whatsDoTelefone(s.contato, msgRespostaSolicitacao(s.nome, s.servico))} target="_blank" rel="noopener noreferrer">Responder no WhatsApp</a>
               <button className="adm-btn peq" onClick={() => virarCliente(s)}>Virar cliente</button>
               <button className="adm-btn peq perigo" onClick={() => excluir(s)}>Excluir</button>
             </div>

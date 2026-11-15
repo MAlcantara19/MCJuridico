@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { combina } from '@/lib/util';
-import { PERIODOS, STATUS, baixarPlanilha, brl, dataBR, intervalo, iso, linkPedidoAvaliacao, mensagemCobranca, podePedirAvaliacao, rotulo, whatsDoTelefone, type Atendimento, type Cliente } from '@/lib/gestao';
+import { PERIODOS, STATUS, baixarPlanilha, brl, dataBR, intervalo, iso, linkPedidoAvaliacao, mensagemCobranca, podePedirAvaliacao, rotulo, whatsDoTelefone, type Atendimento, type Cliente, type Despesa } from '@/lib/gestao';
+import Despesas from './Despesas';
+import Recibo from './Recibo';
 import type { Config } from '@/lib/tipos';
 import FormAtendimento from './FormAtendimento';
 import { LinhaServico } from './AbaClientes';
@@ -19,11 +21,16 @@ export default function AbaFinanceiro({ avisar, config }: { avisar: Aviso; confi
   const [filtro, setFiltro] = useState<'todos' | 'receber' | 'pagos' | 'abertos'>('todos');
   const [busca, setBusca] = useState('');
   const [editando, setEditando] = useState<Partial<Atendimento> | null>(null);
+  const [despesas, setDespesas] = useState<Despesa[]>([]);
+  const [recibo, setRecibo] = useState<Atendimento | null>(null);
+  const [aba, setAba] = useState<'servicos' | 'despesas'>('servicos');
 
   async function carregar() {
     const { data, error } = await supabase().from('atendimentos').select('*').order('data', { ascending: false });
     if (error) return avisar(`Erro: ${error.message}. Rodou o atualizacao-06.sql?`, true);
     setTodos((data as Atendimento[]) ?? []);
+    const d = await supabase().from('despesas').select('*').order('data', { ascending: false });
+    setDespesas((d.data as Despesa[]) ?? []); // vazio se o SQL 11 ainda não rodou
   }
   useEffect(() => { carregar(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -37,6 +44,10 @@ export default function AbaFinanceiro({ avisar, config }: { avisar: Aviso; confi
   const aReceber = faturado - recebido;
   const emAberto = doPeriodo.filter((a) => ['orcamento', 'a_fazer', 'andamento'].includes(a.status));
   const ticket = concluidos.length ? faturado / concluidos.length : 0;
+  const despesasPeriodo = despesas.filter((d) => d.data >= ini && d.data <= fim);
+  const totalDespesas = despesasPeriodo.reduce((s, d) => s + (Number(d.valor) || 0), 0);
+  const aRepassar = despesasPeriodo.filter((d) => d.repassar).reduce((s, d) => s + (Number(d.valor) || 0), 0);
+  const lucro = faturado - totalDespesas;
   // A receber de qualquer época (para não esquecer cobranças antigas)
   const aReceberGeral = soma(todos.filter((a) => a.status === 'concluido' && !a.pago));
 
@@ -83,7 +94,8 @@ export default function AbaFinanceiro({ avisar, config }: { avisar: Aviso; confi
       dataBR(a.data), nomeCliente(a.cliente_id), a.servico, a.descricao, a.processo,
       rotulo(STATUS, a.status), Number(a.valor) || 0, a.pago ? 'Sim' : 'Não', dataBR(a.data_pagamento), a.forma_pagamento,
     ]);
-    linhasPlanilha.push([], ['', '', 'Faturado (concluídos)', '', '', '', faturado], ['', '', 'Recebido', '', '', '', recebido], ['', '', 'A receber', '', '', '', aReceber]);
+    linhasPlanilha.push([], ['DESPESAS'], ...despesasPeriodo.map((d) => [dataBR(d.data), nomeCliente(d.cliente_id), d.categoria, d.descricao, '', d.repassar ? 'Repassar' : '', -(Number(d.valor) || 0)]));
+    linhasPlanilha.push([], ['', '', 'Faturado (concluídos)', '', '', '', faturado], ['', '', 'Recebido', '', '', '', recebido], ['', '', 'A receber', '', '', '', aReceber], ['', '', 'Despesas', '', '', '', -totalDespesas], ['', '', 'Lucro', '', '', '', lucro]);
     baixarPlanilha(
       `financeiro-${(config.marca || 'site').toLowerCase().replace(/\W+/g, '-')}-${nomePeriodo.toLowerCase().replace(/\s+/g, '-')}-${iso(new Date())}.csv`,
       ['Data', 'Cliente', 'Serviço', 'Descrição', 'Processo', 'Situação', 'Valor (R$)', 'Pago', 'Data do pagamento', 'Forma'],
@@ -152,6 +164,8 @@ export default function AbaFinanceiro({ avisar, config }: { avisar: Aviso; confi
         <Cartao rotulo="Recebido" valor={brl(recebido)} dica="já pago" />
         <Cartao rotulo="A receber" valor={brl(aReceber)} dica={aReceberGeral > aReceber ? `${brl(aReceberGeral)} somando outros períodos` : 'concluído e não pago'} alerta={aReceber > 0} />
         <Cartao rotulo="Ticket médio" valor={brl(ticket)} dica={`${emAberto.length} em aberto ou orçamento`} />
+        <Cartao rotulo="Despesas" valor={brl(totalDespesas)} dica={aRepassar ? `${brl(aRepassar)} para repassar aos clientes` : `${despesasPeriodo.length} lançamento(s)`} />
+        <Cartao rotulo="Lucro" valor={brl(lucro)} dica="faturado menos despesas" alerta={lucro < 0} />
       </div>
 
       <div className="adm-item">
@@ -172,6 +186,18 @@ export default function AbaFinanceiro({ avisar, config }: { avisar: Aviso; confi
         <Ranking titulo="Clientes que mais contrataram" itens={topClientes} />
       </div>
 
+      {recibo && (
+        <div id="area-recibo"><Recibo atendimento={recibo} cliente={clientes.find((c) => c.id === recibo.cliente_id)} config={config} fechar={() => setRecibo(null)} /></div>
+      )}
+
+      <div className="adm-linha nao-imprimir">
+        <button className={`adm-btn${aba === 'servicos' ? ' pri' : ''}`} onClick={() => setAba('servicos')}>Serviços</button>
+        <button className={`adm-btn${aba === 'despesas' ? ' pri' : ''}`} onClick={() => setAba('despesas')}>Despesas ({despesasPeriodo.length})</button>
+      </div>
+
+      {aba === 'despesas' && <Despesas lista={despesasPeriodo} clientes={clientes} avisar={avisar} recarregar={carregar} />}
+
+      {aba === 'servicos' && (<>
       <div className="adm-linha">
         {([['todos', 'Todos'], ['receber', 'A receber'], ['pagos', 'Pagos'], ['abertos', 'Em aberto']] as const).map(([k, r]) => (
           <button key={k} className={`adm-btn peq${filtro === k ? ' pri' : ''}`} onClick={() => setFiltro(k)}>{r}</button>
@@ -190,9 +216,13 @@ export default function AbaFinanceiro({ avisar, config }: { avisar: Aviso; confi
                 <button className="adm-btn peq" onClick={() => marcarPago(a)}>Marcar como pago</button>
               </span>
             )}
+            {a.pago && (
+              <button className="adm-btn peq" style={{ justifySelf: 'end' }} onClick={() => { setRecibo(a); setTimeout(() => document.getElementById('area-recibo')?.scrollIntoView({ behavior: 'smooth' }), 50); }}>Recibo em PDF</button>
+            )}
           </div>
         ))}
       </div>
+      </>)}
     </div>
   );
 }

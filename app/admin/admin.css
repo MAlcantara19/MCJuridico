@@ -130,3 +130,13 @@
 .orc-doc th { width: auto !important; border-bottom: 1px solid #dfe3ea; }
 .orc-doc td:nth-child(n+2), .orc-doc th:nth-child(n+2) { text-align: right; white-space: nowrap; padding-left: 12px; }
 .orc-total td { font-weight: 700; font-size: 15px; color: var(--rel-cor); border-top: 2px solid var(--rel-ouro); }
+
+/* ===== Mensagens, checklist, recibo e respostas ===== */
+.previa-msg { margin: 0; padding: 12px 14px; border-radius: 10px; background: color-mix(in srgb, #25d366 10%, transparent); border: 1px solid color-mix(in srgb, #25d366 30%, transparent); white-space: pre-wrap; font: inherit; font-size: 0.88rem; line-height: 1.5; max-height: 320px; overflow: auto; }
+.checklist-adm { border: 1px dashed var(--o); border-radius: 8px; padding: 12px 14px; display: grid; gap: 2px; }
+.checklist-adm .adm-check { min-height: 36px; color: var(--t); font-weight: 500; }
+.respostas { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px; }
+.resposta { align-content: start; }
+.recibo-cabeca { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; }
+.recibo-valor { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 30px; font-weight: 700; color: var(--rel-cor); border: 2px solid var(--rel-ouro); padding: 4px 16px; }
+.recibo-texto { font-size: 14px; line-height: 1.8; margin: 8px 0 18px; }

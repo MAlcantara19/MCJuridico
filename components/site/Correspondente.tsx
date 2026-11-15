@@ -1,7 +1,8 @@
 'use client';
 // Serviços presenciais (correspondente jurídica) com o pacote em destaque.
 import type { Dados } from '@/lib/tipos';
-import { MSG_PACOTE_PADRAO, linhas, linkWhats, preencher } from '@/lib/util';
+import { linhas, linkWhats } from '@/lib/util';
+import { MSG_PACOTE_PADRAO, emojiArea, emojiPacote, preencher } from '@/lib/mensagens';
 import { registrar } from '@/lib/estatisticas';
 import { ListaPrecos } from './Servicos';
 import { IconeArea } from './Icones';
@@ -27,7 +28,7 @@ export default function Correspondente({ dados }: { dados: Dados }) {
         <div className="corresp">
           <div>
             <h3 className="titulo-area"><IconeArea nome={cats[0].icone} tamanho={26} /> {cats[0].nome}</h3>
-            <ListaPrecos servicos={lista} config={c} area={cats[0].nome} />
+            <ListaPrecos servicos={lista} config={c} area={cats[0].nome} emoji={emojiArea(cats[0])} />
             {linhas(c.observacoes_correspondente).map((o) => (
               <p key={o} className="nota" style={{ margin: '14px 0 0' }}>{o}</p>
             ))}
@@ -47,7 +48,7 @@ export default function Correspondente({ dados }: { dados: Dados }) {
               <a
                 className="btn btn-ouro"
                 style={{ width: '100%' }}
-                href={linkWhats(c.whatsapp, preencher(c.mensagem_pacote || MSG_PACOTE_PADRAO, { pacote: pacote.nome, horas: pacote.horas, preco: pacote.preco }))}
+                href={linkWhats(c.whatsapp, preencher(c.mensagem_pacote || MSG_PACOTE_PADRAO, { pacote: pacote.nome, horas: pacote.horas, preco: pacote.preco, publico: pacote.publico, emoji: emojiPacote(pacote) }))}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => registrar('whatsapp', false, pacote.nome)}

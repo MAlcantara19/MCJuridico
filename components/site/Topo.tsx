@@ -1,12 +1,17 @@
 'use client';
 // Apresentação logo no início da página.
 // Layout, moldura da imagem, ajuste e efeito de fundo são escolhidos no painel (Visual e layout).
-import type { Config } from '@/lib/tipos';
+import type { Config, Depoimento } from '@/lib/tipos';
 import { iniciais, linhas, linkWhats } from '@/lib/util';
+import { MSG_GERAL_PADRAO } from '@/lib/mensagens';
 import { IconeWhats } from './Icones';
 import { registrar } from '@/lib/estatisticas';
 
-export default function Topo({ config: c }: { config: Config }) {
+export default function Topo({ config: c, avaliacoes = [] }: { config: Config; avaliacoes?: Depoimento[] }) {
+  // Nota média: aparece a partir de 3 avaliações publicadas (pode desligar no painel)
+  const notas = avaliacoes.map((d) => Number(d.nota)).filter((n) => n >= 1);
+  const media = notas.length ? notas.reduce((s, n) => s + n, 0) / notas.length : 0;
+  const mostrarNota = c.mostrar_nota !== false && notas.length >= 3;
   const layout = c.hero_layout || 'com_foto';
   const temImagem = layout !== 'classico';
   const moldura = c.hero_moldura || 'quadrado';
@@ -32,8 +37,14 @@ export default function Topo({ config: c }: { config: Config }) {
           <p className="topo-profissao entrada">{c.profissao}</p>
           <h1 className="topo-nome entrada entrada-2">{c.nome}</h1>
           <p className="topo-desc entrada entrada-3">{c.descricao_hero}</p>
+          {mostrarNota && (
+            <a className="topo-nota entrada entrada-3" href="#depoimentos">
+              <span className="topo-estrelas" aria-hidden="true">{'★'.repeat(Math.round(media))}<span>{'★'.repeat(5 - Math.round(media))}</span></span>
+              <strong>{media.toFixed(1).replace('.', ',')}</strong> · {notas.length} avaliações de clientes
+            </a>
+          )}
           <div className="topo-acoes entrada entrada-3">
-            <a className="btn btn-ouro" href={linkWhats(c.whatsapp, c.mensagem_whatsapp)} target="_blank" rel="noopener noreferrer" onClick={() => registrar('whatsapp', false, 'Topo do site')}>
+            <a className="btn btn-ouro" href={linkWhats(c.whatsapp, c.mensagem_whatsapp || MSG_GERAL_PADRAO)} target="_blank" rel="noopener noreferrer" onClick={() => registrar('whatsapp', false, 'Topo do site')}>
               <IconeWhats tamanho={18} /> Conversar no WhatsApp
             </a>
             <a className="btn btn-linha" href="#servicos">Ver serviços</a>

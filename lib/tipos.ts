@@ -42,6 +42,9 @@ export type Config = {
   hero_moldura: 'livre' | 'quadrado' | 'retrato' | 'circulo' | 'arco';
   hero_ajuste: 'cobrir' | 'conter';
   hero_efeito: 'nenhum' | 'brilho' | 'grade' | 'pontos' | 'linhas';
+  mostrar_nota: boolean;
+  hora_avulsa: number;
+  hora_extra: number;
   animacoes: boolean;
   mensagem_servico: string;
   mensagem_pacote: string;
@@ -53,8 +56,8 @@ export type Config = {
   secoes: Secao[];
 };
 
-export type Categoria = { id: number; nome: string; descricao: string; icone: string; modalidade: 'remoto' | 'presencial'; ordem: number; ativo: boolean };
-export type Servico = { id: number; categoria_id: number | null; nome: string; preco: string; ordem: number; ativo: boolean };
+export type Categoria = { id: number; nome: string; descricao: string; icone: string; emoji?: string; modalidade: 'remoto' | 'presencial'; ordem: number; ativo: boolean };
+export type Servico = { id: number; categoria_id: number | null; nome: string; preco: string; ordem: number; ativo: boolean; checklist?: string };
 export type Pacote = { id: number; nome: string; publico: string; horas: string; preco: string; grupo: 'mensal' | 'teste' | 'correspondente'; destaque: boolean; ordem: number; ativo: boolean };
 export type Formacao = { id: number; titulo: string; instituicao: string; ano: string; ordem: number };
 export type Documento = { id: number; titulo: string; descricao: string; pasta: string; arquivo_url: string; caminho: string; publico: boolean; ordem: number };
@@ -76,8 +79,10 @@ export type Dados = {
 // Seções da página, na ordem padrão.
 export const SECOES_PADRAO: Secao[] = [
   { id: 'servicos', visivel: true },
+  { id: 'guia', visivel: true },
   { id: 'correspondente', visivel: true },
   { id: 'pacotes', visivel: true },
+  { id: 'simulador', visivel: true },
   { id: 'como_funciona', visivel: true },
   { id: 'depoimentos', visivel: true },
   { id: 'sobre', visivel: true },
@@ -89,8 +94,10 @@ export const SECOES_PADRAO: Secao[] = [
 // Nomes das seções no menu e no painel.
 export const NOMES_SECOES: Record<string, string> = {
   servicos: 'Serviços',
+  guia: 'Qual serviço?',
   correspondente: 'Correspondente',
   pacotes: 'Pacotes',
+  simulador: 'Simulador',
   como_funciona: 'Como funciona',
   depoimentos: 'Depoimentos',
   sobre: 'Sobre',

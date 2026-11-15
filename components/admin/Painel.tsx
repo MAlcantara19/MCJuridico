@@ -15,6 +15,7 @@ import AbaMaster from './AbaMaster';
 import AbaResumo from './AbaResumo';
 import AbaRelatorio from './AbaRelatorio';
 import AbaArquivos from './AbaArquivos';
+import AbaRespostas from './AbaRespostas';
 import AbaClientes from './gestao/AbaClientes';
 import AbaFinanceiro from './gestao/AbaFinanceiro';
 import AbaAgenda from './gestao/AbaAgenda';
@@ -29,6 +30,7 @@ const ABAS: { id: string; nome: string; soMaster?: boolean; grupo?: boolean }[] 
   { id: 'clientes', nome: 'Clientes' },
   { id: 'financeiro', nome: 'Financeiro' },
   { id: 'solicitacoes', nome: 'Solicitações' },
+  { id: 'respostas', nome: 'Respostas prontas' },
   { id: 'arquivos', nome: 'Meus arquivos' },
   { id: 'relatorio', nome: 'Relatório de diligência' },
   { id: 'g-site', nome: 'Site', grupo: true },
@@ -234,6 +236,7 @@ export default function Painel() {
           {aba === 'resumo' && <AbaResumo nome={perfil.nome} irPara={setAba} />}
           {aba === 'solicitacoes' && <AbaSolicitacoes avisar={avisar} irPara={setAba} />}
           {aba === 'agenda' && <AbaAgenda avisar={avisar} />}
+          {aba === 'respostas' && <AbaRespostas avisar={avisar} />}
           {aba === 'clientes' && (
             <AbaClientes
               key={clienteAberto ?? 'lista'}

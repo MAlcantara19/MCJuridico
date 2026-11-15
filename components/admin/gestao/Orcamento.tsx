@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { Config } from '@/lib/tipos';
 import { supabase } from '@/lib/supabase';
 import { brl, dataBR, hojeISO, somarDias, whatsDoTelefone, type Cliente } from '@/lib/gestao';
+import { msgOrcamento } from '@/lib/mensagens';
 
 type Item = { nome: string; qtd: number; valor: number; referencia?: string };
 type Aviso = (m: string, e?: boolean) => void;
@@ -64,15 +65,14 @@ export default function Orcamento({ cliente, config, avisar, fechar }: { cliente
     });
     avisar('Orçamento salvo na ficha e no Financeiro');
     if (irWhats && cliente.telefone) {
-      const texto = [
-        `Olá${cliente.responsavel ? `, ${cliente.responsavel.split(' ')[0]}` : ''}! Segue o orçamento nº ${numero}:`,
-        '',
-        ...itens.map((i) => `• ${i.qtd > 1 ? `${i.qtd}x ` : ''}${i.nome}: ${brl(i.qtd * i.valor)}`),
-        desc ? `Desconto: -${brl(desc)}` : '',
-        `*Total: ${brl(total)}*`,
-        '',
-        `Válido até ${dataBR(validoAte)}. Envio o PDF a seguir.`,
-      ].filter((l, k, arr) => l !== '' || arr[k - 1] !== '').join('\n');
+      const texto = msgOrcamento({
+        nome: cliente.responsavel || cliente.nome,
+        numero,
+        itens: itens.map((i) => `${i.qtd > 1 ? `${i.qtd}x ` : ''}${i.nome}: ${brl(i.qtd * i.valor)}`),
+        desconto: desc ? brl(desc) : undefined,
+        total: brl(total),
+        validade: dataBR(validoAte),
+      });
       window.open(whatsDoTelefone(cliente.telefone, texto), '_blank', 'noopener');
     }
   }

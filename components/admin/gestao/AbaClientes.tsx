@@ -9,6 +9,7 @@ import {
 } from '@/lib/gestao';
 import FormAtendimento from './FormAtendimento';
 import Orcamento from './Orcamento';
+import Recibo from './Recibo';
 import type { Config } from '@/lib/tipos';
 import { useBase } from './useBase';
 
@@ -104,6 +105,7 @@ function FichaCliente({ id, config, navegar, clientes, servicos, avisar, voltar,
   const [relatorios, setRelatorios] = useState<RelatorioResumo[]>([]);
   const [orcamentos, setOrcamentos] = useState<OrcamentoResumo[]>([]);
   const [orcando, setOrcando] = useState(false);
+  const [recibo, setRecibo] = useState<Atendimento | null>(null);
   const atual = clientes.find((c) => c.id === id);
   const [v, setV] = useState({ ...VAZIO, ...(atual ?? {}) });
   const [mudou, setMudou] = useState(false);
@@ -183,7 +185,7 @@ function FichaCliente({ id, config, navegar, clientes, servicos, avisar, voltar,
       <div className="adm-linha" style={{ justifyContent: 'space-between' }}>
         <button className="adm-btn peq" onClick={voltar}>← Clientes</button>
         {id && v.telefone && (
-          <a className="adm-btn peq" href={whatsDoTelefone(v.telefone, `Olá${v.responsavel ? `, ${v.responsavel.split(' ')[0]}` : ''}! Aqui é a Maria Carolina.`)} target="_blank" rel="noopener noreferrer">WhatsApp</a>
+          <a className="adm-btn peq" href={whatsDoTelefone(v.telefone, `Olá${v.responsavel ? `, ${v.responsavel.split(' ')[0]}` : ''}! 👋\nAqui é a Maria Carolina. Tudo bem? 😊`)} target="_blank" rel="noopener noreferrer">WhatsApp</a>
         )}
       </div>
       <h2 style={{ margin: 0 }}>{id ? v.nome || 'Cliente' : 'Novo cliente'}</h2>
@@ -267,6 +269,12 @@ function FichaCliente({ id, config, navegar, clientes, servicos, avisar, voltar,
                 <LinhaServico s={s} aoClicar={() => setEditando(s)} />
                 {s.status === 'concluido' && !s.pago && (
                   <button className="adm-btn peq" style={{ justifySelf: 'end' }} onClick={() => cobrar([s])}>Cobrar no WhatsApp</button>
+                )}
+                {s.pago && (
+                  <button className="adm-btn peq" style={{ justifySelf: 'end' }} onClick={() => setRecibo(s)}>Recibo em PDF</button>
+                )}
+                {recibo?.id === s.id && atual && (
+                  <Recibo atendimento={s} cliente={{ ...atual, ...v } as Cliente} config={config} fechar={() => setRecibo(null)} />
                 )}
               </div>
             ))}

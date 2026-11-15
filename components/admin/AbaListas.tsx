@@ -38,6 +38,11 @@ export default function AbaListas({ tipo, config, salvar, avisar }: Props) {
         />
         <FormConfig titulo="Regras dos pacotes" config={config} salvar={salvar}
           campos={[{ nome: 'regras_pacotes', rotulo: 'Uma regra por linha', area: true }]} />
+        <FormConfig titulo="Simulador de pacote (site)" config={config} salvar={salvar}
+          campos={[
+            { nome: 'hora_avulsa', rotulo: 'Valor da hora avulsa (R$)', dica: 'Só o número. Usado para calcular a economia.' },
+            { nome: 'hora_extra', rotulo: 'Valor da hora extra nos pacotes (R$)', dica: 'Só o número.' },
+          ]} />
       </div>
     );
   }

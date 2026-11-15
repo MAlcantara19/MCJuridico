@@ -1,4 +1,5 @@
 // Tipos e funções da parte de gestão (clientes, serviços realizados, agenda).
+import { MSG_COBRANCA_PADRAO, msgPedirAvaliacao } from './mensagens';
 
 export type Cliente = {
   id: number; nome: string; tipo: string; responsavel: string; documento: string;
@@ -10,7 +11,42 @@ export type Atendimento = {
   id: number; cliente_id: number | null; servico: string; descricao: string; processo: string;
   data: string; valor: number; status: string; pago: boolean; data_pagamento: string | null;
   forma_pagamento: string; criado_em: string;
+  checklist_feito?: string[] | null; comprovante?: string | null;
 };
+
+export type Despesa = {
+  id: number; data: string; descricao: string; categoria: string; valor: number;
+  cliente_id: number | null; repassar: boolean; comprovante: string | null; criado_em: string;
+};
+
+export const CATEGORIAS_DESPESA = ['Custas e taxas', 'Cópias e impressões', 'Transporte', 'Combustível', 'Correios', 'Material', 'Internet e telefone', 'Outros'];
+
+// Valor por extenso (para o recibo). Ex.: 1350.5 -> "mil, trezentos e cinquenta reais e cinquenta centavos"
+export function porExtenso(valor: number) {
+  const u = ['', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez', 'onze', 'doze', 'treze', 'quatorze', 'quinze', 'dezesseis', 'dezessete', 'dezoito', 'dezenove'];
+  const d = ['', '', 'vinte', 'trinta', 'quarenta', 'cinquenta', 'sessenta', 'setenta', 'oitenta', 'noventa'];
+  const c = ['', 'cento', 'duzentos', 'trezentos', 'quatrocentos', 'quinhentos', 'seiscentos', 'setecentos', 'oitocentos', 'novecentos'];
+  const ate999 = (n: number): string => {
+    if (n === 0) return '';
+    if (n === 100) return 'cem';
+    const partes: string[] = [];
+    if (n >= 100) partes.push(c[Math.floor(n / 100)]);
+    const r = n % 100;
+    if (r >= 20) partes.push(d[Math.floor(r / 10)] + (r % 10 ? ` e ${u[r % 10]}` : ''));
+    else if (r > 0) partes.push(u[r]);
+    return partes.join(' e ');
+  };
+  const inteiro = Math.floor(Math.round(valor * 100) / 100);
+  const centavos = Math.round((valor - inteiro) * 100);
+  const milhares = Math.floor(inteiro / 1000);
+  const resto = inteiro % 1000;
+  let reais = '';
+  if (milhares) reais = milhares === 1 ? 'mil' : `${ate999(milhares)} mil`;
+  if (resto) reais += (reais ? (resto < 100 || resto % 100 === 0 ? ' e ' : ', ') : '') + ate999(resto);
+  const txtReais = inteiro ? `${reais} ${inteiro === 1 ? 'real' : 'reais'}` : '';
+  const txtCent = centavos ? `${ate999(centavos)} ${centavos === 1 ? 'centavo' : 'centavos'}` : '';
+  return [txtReais, txtCent].filter(Boolean).join(' e ') || 'zero reais';
+}
 
 export type Compromisso = {
   id: number; titulo: string; tipo: string; data: string; hora: string | null; cliente_id: number | null;
@@ -102,16 +138,16 @@ export function whatsDoTelefone(tel: string, texto?: string) {
   return `https://wa.me/${n}${texto ? `?text=${encodeURIComponent(texto)}` : ''}`;
 }
 
-export const MSG_COBRANCA_PADRAO = 'Olá{responsavel}! Tudo bem? Passando para lembrar do pagamento referente a *{servico}* ({data}), no valor de *{valor}*. Se já tiver feito, pode desconsiderar. Obrigada!';
+export { MSG_COBRANCA_PADRAO } from './mensagens';
 
 // Monta a mensagem de cobrança com os dados do serviço
 export function mensagemCobranca(modelo: string | undefined, dados: { responsavel?: string; servico: string; data: string; valor: number }) {
   const primeiro = (dados.responsavel || '').trim().split(' ')[0];
   return (modelo || MSG_COBRANCA_PADRAO)
-    .replace('{responsavel}', primeiro ? `, ${primeiro}` : '')
-    .replace('{servico}', dados.servico)
-    .replace('{data}', dataBR(dados.data))
-    .replace('{valor}', brl(dados.valor));
+    .replaceAll('{responsavel}', primeiro ? `, ${primeiro}` : '')
+    .replaceAll('{servico}', dados.servico)
+    .replaceAll('{data}', dataBR(dados.data))
+    .replaceAll('{valor}', brl(dados.valor));
 }
 
 // Baixa uma lista como planilha (CSV que o Excel abre direto, com acentos e vírgula decimal)
@@ -136,11 +172,7 @@ export function baixarPlanilha(nomeArquivo: string, cabecalho: string[], linhas:
 // Link do WhatsApp com o convite para avaliar (página /avaliar)
 export function linkPedidoAvaliacao(c: Pick<Cliente, 'telefone' | 'responsavel' | 'nome'>) {
   const origem = typeof window !== 'undefined' ? window.location.origin : '';
-  const primeiro = (c.responsavel || '').trim().split(' ')[0];
-  return whatsDoTelefone(
-    c.telefone,
-    `Olá${primeiro ? `, ${primeiro}` : ''}! Obrigada pela confiança no meu trabalho. Se puder, deixe sua avaliação, leva menos de 1 minuto: ${origem}/avaliar?n=${encodeURIComponent(c.responsavel || c.nome)}`,
-  );
+  return whatsDoTelefone(c.telefone, msgPedirAvaliacao(c.responsavel || c.nome, `${origem}/avaliar?n=${encodeURIComponent(c.responsavel || c.nome)}`));
 }
 
 // Pode pedir de novo? (não pediu ainda ou faz mais de 90 dias)

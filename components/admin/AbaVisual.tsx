@@ -32,6 +32,7 @@ export default function AbaVisual({ config, salvar, avisar }: {
     hero_ajuste: config.hero_ajuste || 'cobrir',
     hero_efeito: config.hero_efeito || 'brilho',
     animacoes: config.animacoes !== false,
+    mostrar_nota: config.mostrar_nota !== false,
     logo_url: config.logo_url || '',
     foto_url: config.foto_url || '',
   });
@@ -150,6 +151,7 @@ export default function AbaVisual({ config, salvar, avisar }: {
             </select>
           </label>
           <label className="adm-check"><input type="checkbox" checked={v.animacoes} onChange={(e) => mudar('animacoes', e.target.checked)} /> Animações suaves (imagem flutuando e seções aparecendo ao rolar)</label>
+          <label className="adm-check"><input type="checkbox" checked={v.mostrar_nota} onChange={(e) => mudar('mostrar_nota', e.target.checked)} /> Mostrar a nota média das avaliações no topo (a partir de 3 avaliações publicadas)</label>
         </div>
         <p className="adm-dica">Prévia (muda na hora; só vai para o site quando clicar em Salvar visual):</p>
         <div className="previa-topo">

@@ -473,3 +473,54 @@ a.selo-seg:hover { border-color: var(--ouro); color: #fff; }
 .aval button.link-item { border: 0; font: inherit; font-weight: 600; cursor: pointer; width: 100%; }
 .aval-ok { display: grid; gap: 14px; justify-items: center; color: var(--ouro); }
 .aval-ok h2 { color: #fff; font-family: var(--fonte-titulo); font-size: 2rem; margin: 0; }
+
+/* ---------- Checklist no formulário ---------- */
+.checklist-site { border: 1px dashed var(--ouro); border-radius: 8px; padding: 14px 18px; font-size: 0.9rem; background: color-mix(in srgb, var(--ouro) 6%, transparent); }
+.checklist-site ul { margin: 8px 0 0; padding-left: 20px; color: var(--suave); }
+
+/* ---------- Nota média no topo ---------- */
+.topo-nota { display: inline-flex; align-items: center; gap: 8px; margin: -16px 0 28px; padding: 8px 16px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.18); text-decoration: none; color: rgba(255, 255, 255, 0.85); font-size: 0.88rem; }
+.topo-nota:hover { border-color: var(--ouro); }
+.topo-nota strong { color: #fff; }
+.topo-estrelas { color: var(--ouro); letter-spacing: 1px; }
+.topo-estrelas span { opacity: 0.3; }
+
+/* ---------- Qual serviço eu preciso? ---------- */
+.guia { max-width: 760px; border: 1px solid var(--linha); border-radius: 12px; padding: 32px; background: var(--cartao); }
+.guia h3 { font-family: var(--fonte-titulo); color: var(--titulo); font-size: 1.8rem; font-weight: 600; margin: 4px 0 20px; }
+.guia-passo { margin: 0; color: var(--ouro-texto); font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; }
+.guia-progresso { display: flex; gap: 6px; margin-bottom: 18px; }
+.guia-progresso span { flex: 1; height: 4px; border-radius: 9px; background: var(--linha); transition: background 0.3s; }
+.guia-progresso span.cheio { background: var(--ouro); }
+.guia-opcoes { display: grid; gap: 10px; }
+.guia-opcao { display: flex; align-items: center; gap: 12px; text-align: left; min-height: 56px; padding: 12px 18px; border-radius: 10px; border: 1px solid var(--linha); background: transparent; color: var(--texto); font-weight: 500; transition: border-color 0.2s, background 0.2s, transform 0.15s; }
+.guia-opcao:hover { border-color: var(--ouro); transform: translateX(4px); }
+.guia-opcao.marcada { border-color: var(--ouro); background: color-mix(in srgb, var(--ouro) 12%, transparent); }
+.guia-emoji { font-size: 1.3rem; }
+.guia-voltar { margin-top: 16px; background: none; border: 0; color: var(--suave); padding: 6px 0; }
+.guia-pacote { margin-top: 18px; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 14px 18px; border-radius: 10px; background: var(--navy); color: #fff; }
+.guia-pacote > strong { color: var(--ouro); font-family: var(--fonte-titulo); font-size: 1.5rem; white-space: nowrap; }
+.btn-linha-escura { border: 1px solid var(--linha); background: transparent; color: var(--texto); }
+.btn-linha-escura:hover { border-color: var(--ouro); }
+@media (max-width: 600px) { .guia { padding: 22px 18px; } .guia-pacote { flex-direction: column; align-items: flex-start; } }
+
+/* ---------- Simulador de pacote ---------- */
+.simulador { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 40px; align-items: start; }
+.sim-atalhos { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 26px; }
+.sim-atalhos .aba small { color: var(--suave); margin-left: 4px; }
+.aba.ativa-sim { background: var(--navy); border-color: var(--navy); color: #fff; }
+.aba.ativa-sim small { color: rgba(255, 255, 255, 0.7); }
+.sim-faixa { display: grid; gap: 12px; margin-bottom: 14px; }
+.sim-horas { font-family: var(--fonte-titulo); font-size: 3rem; color: var(--titulo); line-height: 1; }
+.sim-faixa input[type='range'] { width: 100%; accent-color: var(--ouro); height: 28px; }
+.sim-resultado { background: var(--navy); color: #fff; border-radius: 12px; padding: 32px; display: grid; gap: 6px; position: relative; overflow: hidden; }
+.sim-resultado::before { content: ''; position: absolute; inset: 0; background: radial-gradient(400px circle at 100% 0%, color-mix(in srgb, var(--ouro) 22%, transparent), transparent 60%); pointer-events: none; }
+.sim-resultado > * { position: relative; }
+.sim-rotulo { color: var(--ouro); font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; }
+.sim-resultado h3 { font-family: var(--fonte-titulo); font-size: 2.2rem; font-weight: 600; margin: 0; }
+.sim-detalhe { margin: 0; color: rgba(255, 255, 255, 0.7); }
+.sim-valor { font-family: var(--fonte-titulo); font-size: 3rem; color: var(--ouro); line-height: 1.1; margin-top: 8px; }
+.sim-valor small { font-size: 1rem; color: rgba(255, 255, 255, 0.6); margin-left: 4px; }
+.sim-economia { margin: 4px 0 18px; color: rgba(255, 255, 255, 0.85); font-size: 0.92rem; }
+.sim-economia strong { color: #fff; }
+@media (max-width: 860px) { .simulador { grid-template-columns: 1fr; } }

@@ -1,8 +1,13 @@
 'use client';
 // Formulário de serviço realizado / demanda (usado em Clientes e no Financeiro).
-import { useState, type FormEvent } from 'react';
+// Extras: checklist de documentos do serviço, comprovante de pagamento e aviso automático ao cliente
+// quando a situação muda.
+import { useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '@/lib/supabase';
-import { FORMAS_PAGAMENTO, STATUS, hojeISO, type Atendimento, type Cliente } from '@/lib/gestao';
+import { linhas } from '@/lib/util';
+import { enviarPrivado, linkPrivado } from '@/lib/arquivos';
+import { msgPedirDocumentos, msgStatus } from '@/lib/mensagens';
+import { FORMAS_PAGAMENTO, STATUS, brl, hojeISO, whatsDoTelefone, type Atendimento, type Cliente } from '@/lib/gestao';
 
 type Props = {
   inicial?: Partial<Atendimento>;
@@ -26,25 +31,72 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
     data_pagamento: inicial?.data_pagamento ?? '',
     forma_pagamento: inicial?.forma_pagamento ?? 'Pix',
   });
+  const [feitos, setFeitos] = useState<string[]>(inicial?.checklist_feito ?? []);
+  const [comprovante, setComprovante] = useState<string | null>(inicial?.comprovante ?? null);
+  const [arquivoComp, setArquivoComp] = useState<File | null>(null);
+  const [checklists, setChecklists] = useState<Record<string, string>>({});
   const [salvando, setSalvando] = useState(false);
+  const [aviso, setAviso] = useState<string | null>(null); // mensagem pronta para o cliente
   const mudar = (campo: string, valor: any) => setV((x) => ({ ...x, [campo]: valor }));
+
+  // Checklist cadastrado em cada serviço (painel > Serviços)
+  useEffect(() => {
+    supabase().from('servicos').select('nome, checklist').then(({ data }) => {
+      const mapa: Record<string, string> = {};
+      for (const s of (data ?? []) as { nome: string; checklist: string | null }[]) if (s.checklist) mapa[s.nome] = s.checklist;
+      setChecklists(mapa);
+    });
+  }, []);
+
+  const itens = linhas(checklists[v.servico] || '');
+  const faltando = itens.filter((i) => !feitos.includes(i));
+  const cliente = clientes.find((c) => c.id === v.cliente_id);
+  const valorNum = Number(String(v.valor).replace(/\./g, '').replace(',', '.')) || 0;
+
+  function pedirDocumentos() {
+    if (!cliente?.telefone) return avisar('Cadastre o WhatsApp do cliente para pedir os documentos.', true);
+    window.open(whatsDoTelefone(cliente.telefone, msgPedirDocumentos({ nome: cliente.responsavel || cliente.nome, servico: v.servico, faltando })), '_blank', 'noopener');
+  }
+
+  async function abrirComprovante() {
+    if (!comprovante) return;
+    try { window.open(await linkPrivado(comprovante, 120), '_blank', 'noopener'); } catch (e: any) { avisar(e.message, true); }
+  }
 
   async function salvar(e: FormEvent) {
     e.preventDefault();
-    const valor = Number(String(v.valor).replace(/\./g, '').replace(',', '.')) || 0;
-    const dados = {
-      ...v,
-      valor,
-      data_pagamento: v.pago ? (v.data_pagamento || hojeISO()) : null,
-    };
     setSalvando(true);
-    const r = inicial?.id
-      ? await supabase().from('atendimentos').update(dados).eq('id', inicial.id)
-      : await supabase().from('atendimentos').insert(dados);
-    setSalvando(false);
-    if (r.error) return avisar(`Erro: ${r.error.message}`, true);
-    avisar('Serviço salvo');
-    aoSalvar();
+    try {
+      let caminhoComp = comprovante;
+      if (arquivoComp) {
+        if (arquivoComp.size > 10 * 1024 * 1024) throw new Error('Comprovante maior que 10 MB.');
+        caminhoComp = await enviarPrivado(arquivoComp);
+      }
+      const dados = {
+        ...v,
+        valor: valorNum,
+        data_pagamento: v.pago ? (v.data_pagamento || hojeISO()) : null,
+        checklist_feito: feitos.filter((f) => itens.includes(f)),
+        comprovante: caminhoComp,
+      };
+      const r = inicial?.id
+        ? await supabase().from('atendimentos').update(dados).eq('id', inicial.id)
+        : await supabase().from('atendimentos').insert(dados);
+      if (r.error) throw r.error;
+      avisar('Serviço salvo');
+
+      // Mudou a situação? Oferece avisar o cliente pelo WhatsApp.
+      const mudouStatus = !inicial?.id || inicial.status !== v.status;
+      const texto = cliente?.telefone && mudouStatus
+        ? msgStatus({ nome: cliente.responsavel || cliente.nome, servico: v.servico, status: v.status, valor: brl(valorNum), pago: v.pago, faltando: v.status === 'a_fazer' ? faltando : [] })
+        : '';
+      if (texto) setAviso(texto);
+      else aoSalvar();
+    } catch (err: any) {
+      avisar(`Erro: ${err.message}. Rodou o atualizacao-11.sql?`, true);
+    } finally {
+      setSalvando(false);
+    }
   }
 
   async function excluir() {
@@ -53,6 +105,21 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
     if (error) return avisar(error.message, true);
     avisar('Excluído');
     aoSalvar();
+  }
+
+  if (aviso && cliente) {
+    const rotuloStatus = STATUS.find((s) => s.valor === v.status)?.rotulo ?? v.status;
+    return (
+      <div className="adm-item mudou">
+        <h3>Avisar {cliente.nome}?</h3>
+        <p className="adm-dica" style={{ margin: 0 }}>O serviço mudou para <strong>{rotuloStatus}</strong>. A mensagem já está pronta:</p>
+        <pre className="previa-msg">{aviso}</pre>
+        <div className="adm-linha">
+          <a className="adm-btn pri" href={whatsDoTelefone(cliente.telefone, aviso)} target="_blank" rel="noopener noreferrer" onClick={() => setTimeout(aoSalvar, 300)}>Avisar no WhatsApp</a>
+          <button className="adm-btn" onClick={aoSalvar}>Agora não</button>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -90,10 +157,38 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
                 {FORMAS_PAGAMENTO.map((f) => <option key={f}>{f}</option>)}
               </select>
             </label>
+            <label>
+              Comprovante (opcional)
+              <input type="file" accept="image/*,application/pdf" onChange={(e) => setArquivoComp(e.target.files?.[0] ?? null)} />
+              {comprovante && !arquivoComp && (
+                <span className="adm-linha" style={{ marginTop: 4 }}>
+                  <button type="button" className="adm-btn peq" onClick={abrirComprovante}>Ver comprovante</button>
+                  <button type="button" className="adm-btn peq perigo" onClick={() => setComprovante(null)}>Tirar</button>
+                </span>
+              )}
+            </label>
           </>
         )}
         <label style={{ gridColumn: '1 / -1' }}>O que foi feito<textarea value={v.descricao} onChange={(e) => mudar('descricao', e.target.value)} placeholder="Ex.: protocolo da petição inicial no Fórum de Três Rios" /></label>
       </div>
+
+      {itens.length > 0 && (
+        <div className="checklist-adm">
+          <div className="adm-linha" style={{ justifyContent: 'space-between' }}>
+            <strong>📂 Checklist do serviço ({itens.length - faltando.length}/{itens.length})</strong>
+            {faltando.length > 0 && cliente?.telefone && (
+              <button type="button" className="adm-btn peq" onClick={pedirDocumentos}>Pedir o que falta no WhatsApp</button>
+            )}
+          </div>
+          {itens.map((i) => (
+            <label key={i} className="adm-check">
+              <input type="checkbox" checked={feitos.includes(i)} onChange={(e) => setFeitos((f) => (e.target.checked ? [...f, i] : f.filter((x) => x !== i)))} />
+              <span style={{ textDecoration: feitos.includes(i) ? 'line-through' : undefined }}>{i}</span>
+            </label>
+          ))}
+        </div>
+      )}
+
       <div className="adm-linha">
         <button className="adm-btn pri" type="submit" disabled={salvando}>{salvando ? 'Salvando…' : 'Salvar'}</button>
         <button className="adm-btn" type="button" onClick={aoCancelar}>Cancelar</button>

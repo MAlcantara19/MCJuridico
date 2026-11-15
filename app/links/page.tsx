@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { carregarDados } from '@/lib/dados';
 import { iniciais, linkWhats } from '@/lib/util';
+import { MSG_GERAL_PADRAO, MSG_PACOTE_PADRAO, emojiPacote, preencher } from '@/lib/mensagens';
 import PaginaSimples from '@/components/site/PaginaSimples';
 import BotaoRegistro from '@/components/site/BotaoRegistro';
 
@@ -30,14 +31,14 @@ export default async function Links() {
         <p className="links-prof">{c.profissao}</p>
 
         <nav className="links-lista" aria-label="Links">
-          <BotaoRegistro className="link-item destaque" href={linkWhats(c.whatsapp, c.mensagem_whatsapp)}>
+          <BotaoRegistro className="link-item destaque" href={linkWhats(c.whatsapp, c.mensagem_whatsapp || MSG_GERAL_PADRAO)}>
             Conversar no WhatsApp
           </BotaoRegistro>
           <Link className="link-item" href="/#servicos">Serviços e valores</Link>
           <Link className="link-item" href="/#correspondente">Diligências e correspondente</Link>
           <Link className="link-item" href="/#pacotes">Pacotes mensais</Link>
           {pacote && (
-            <BotaoRegistro className="link-item" href={linkWhats(c.whatsapp, `Olá, Maria Carolina! Quero experimentar o ${pacote.nome} (${pacote.horas}).`)}>
+            <BotaoRegistro className="link-item" href={linkWhats(c.whatsapp, preencher(c.mensagem_pacote || MSG_PACOTE_PADRAO, { pacote: pacote.nome, horas: pacote.horas, preco: pacote.preco, publico: pacote.publico, emoji: emojiPacote(pacote) }))}>
               {pacote.nome}: {pacote.horas} por {pacote.preco}
             </BotaoRegistro>
           )}

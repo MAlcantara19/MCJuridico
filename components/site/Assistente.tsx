@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { Config, Pergunta } from '@/lib/tipos';
 import { linkWhats, normalizar } from '@/lib/util';
+import { MSG_GERAL_PADRAO } from '@/lib/mensagens';
 import { IconeAjuda, IconeEnviar, IconeFechar, IconeWhats } from './Icones';
 import { registrar } from '@/lib/estatisticas';
 
@@ -53,7 +54,7 @@ export default function Assistente({ config: c, perguntas }: { config: Config; p
     setTexto('');
   }
 
-  const whats = linkWhats(c.whatsapp, c.mensagem_whatsapp);
+  const whats = linkWhats(c.whatsapp, c.mensagem_whatsapp || MSG_GERAL_PADRAO);
 
   if (!aberto) {
     return (

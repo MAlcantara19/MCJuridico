@@ -91,6 +91,13 @@ Rode `supabase/atualizacao-10.sql`.
 - Financeiro: ao marcar um serviço como pago, o painel sugere pedir avaliação (no máximo 1 vez a cada 90 dias por cliente)
 - Lembrete: às segundas, o e-mail traz o resumo da semana anterior (faturado, recebido, serviços, clientes novos, visitas, cliques e avaliações)
 
+## Atualização 11 (Fase 1)
+
+Rode `supabase/atualizacao-11.sql`.
+- Todas as mensagens de WhatsApp no novo formato (saudação, item em negrito com emoji, tópicos e fechamento). Ficam em `lib/mensagens.ts`; as do site também em Textos e contatos
+- Site: "Qual serviço eu preciso?", simulador de pacote, nota média no topo, checklist no formulário
+- Painel: Respostas prontas, checklist e aviso automático no serviço, comprovante e recibo em PDF, despesas e lucro no Financeiro
+
 ## Onde mexer
 
 - Pelo painel `/admin` (sem código): textos, marca, cores, fonte, tema, logo, foto,

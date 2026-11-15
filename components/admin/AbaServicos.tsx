@@ -5,6 +5,9 @@ import { supabase } from '@/lib/supabase';
 import CrudLista from './CrudLista';
 import { ICONES_AREA } from '@/components/site/Icones';
 
+// Emojis para as mensagens (vazio = automático pelo ícone)
+const EMOJIS = ['', '⚖️', '💼', '💰', '💻', '🏪', '📄', '📂', '🏛️', '📑', '📊', '📅', '🧾', '✍️', '📌'].map((e) => ({ valor: e, rotulo: e || 'Automático (pelo ícone)' }));
+
 type Aviso = (m: string, e?: boolean) => void;
 
 export default function AbaServicos({ avisar }: { avisar: Aviso }) {
@@ -21,7 +24,7 @@ export default function AbaServicos({ avisar }: { avisar: Aviso }) {
     <div style={{ display: 'grid', gap: 28 }}>
       <div>
         <h2>Serviços</h2>
-        <p className="adm-sub">Escolha a área e edite os serviços dela. O preço é texto livre (ex.: “R$ 50/h”, “a partir de R$ 150/mês”).</p>
+        <p className="adm-sub">Escolha a área e edite os serviços dela. O preço é texto livre (ex.: “R$ 50/h”, “desde R$ 150/mês”). O checklist aparece no formulário do site e no serviço registrado, para não esquecer nenhum documento.</p>
         {categorias.length > 0 && (
           <CrudLista
             tabela="servicos"
@@ -34,6 +37,7 @@ export default function AbaServicos({ avisar }: { avisar: Aviso }) {
               { nome: 'preco', rotulo: 'Preço' },
               { nome: 'categoria_id', rotulo: 'Área', tipo: 'select', opcoes: categorias, numero: true },
               { nome: 'ativo', rotulo: 'Aparece no site', tipo: 'bool' },
+              { nome: 'checklist', rotulo: 'Checklist de documentos (um por linha)', tipo: 'area' },
             ]}
             recarregar={versao}
           />
@@ -53,6 +57,7 @@ export default function AbaServicos({ avisar }: { avisar: Aviso }) {
             { nome: 'nome', rotulo: 'Nome da área' },
             { nome: 'modalidade', rotulo: 'Tipo', tipo: 'select', opcoes: [{ valor: 'remoto', rotulo: 'Remoto' }, { valor: 'presencial', rotulo: 'Presencial' }] },
             { nome: 'icone', rotulo: 'Ícone', tipo: 'select', opcoes: ICONES_AREA },
+            { nome: 'emoji', rotulo: 'Emoji nas mensagens do WhatsApp', tipo: 'select', opcoes: EMOJIS },
             { nome: 'ativo', rotulo: 'Aparece no site', tipo: 'bool' },
             { nome: 'descricao', rotulo: 'Descrição curta', tipo: 'area' },
           ]}

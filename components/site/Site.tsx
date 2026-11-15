@@ -16,6 +16,8 @@ import Contato from './Contato';
 import Rodape from './Rodape';
 import Assistente from './Assistente';
 import Depoimentos from './Depoimentos';
+import Guia from './Guia';
+import Simulador from './Simulador';
 
 export default function Site({ dados }: { dados: Dados }) {
   const c = dados.config;
@@ -61,6 +63,8 @@ export default function Site({ dados }: { dados: Dados }) {
     correspondente: <Correspondente dados={dados} />,
     pacotes: <Pacotes dados={dados} />,
     como_funciona: <ComoFunciona config={c} />,
+    guia: <Guia dados={dados} />,
+    simulador: <Simulador dados={dados} />,
     depoimentos: <Depoimentos depoimentos={dados.depoimentos} />,
     sobre: <Sobre dados={dados} />,
     documentos: <Documentos documentos={dados.documentos} />,
@@ -73,7 +77,7 @@ export default function Site({ dados }: { dados: Dados }) {
     <div className="site" style={estilo} ref={raiz}>
       <Cabecalho config={c} secoes={ordem} />
       <main>
-        <Topo config={c} />
+        <Topo config={c} avaliacoes={dados.depoimentos} />
         {ordem.map((id, i) => (
           <div key={id} className={`revelar${i % 2 === 1 ? ' secao-sup' : ''}`}>
             {blocos[id]}

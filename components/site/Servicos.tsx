@@ -4,14 +4,15 @@ import { useState } from 'react';
 import type { Config, Dados, Servico } from '@/lib/tipos';
 import { registrar } from '@/lib/estatisticas';
 import { IconeArea, IconeBusca, IconeWhats } from './Icones';
-import { MSG_SERVICO_PADRAO, combina, linkWhats, preencher } from '@/lib/util';
+import { combina, linkWhats } from '@/lib/util';
+import { MSG_SERVICO_PADRAO, emojiArea, msgBuscaSemResultado, preencher } from '@/lib/mensagens';
 
 // Lista de preços: cada linha abre o WhatsApp já com o nome do serviço na mensagem.
-export function linkServico(c: Config, s: Servico, area?: string) {
-  return linkWhats(c.whatsapp, preencher(c.mensagem_servico || MSG_SERVICO_PADRAO, { servico: s.nome, preco: s.preco, area }));
+export function linkServico(c: Config, s: Servico, area?: string, emoji?: string) {
+  return linkWhats(c.whatsapp, preencher(c.mensagem_servico || MSG_SERVICO_PADRAO, { servico: s.nome, preco: s.preco, area, emoji: emoji || '📌' }));
 }
 
-export function ListaPrecos({ servicos, config, area }: { servicos: Servico[]; config: Config; area?: string }) {
+export function ListaPrecos({ servicos, config, area, emoji }: { servicos: Servico[]; config: Config; area?: string; emoji?: string }) {
   return (
     <ul className="lista-precos">
       {servicos.map((s) => {
@@ -28,7 +29,7 @@ export function ListaPrecos({ servicos, config, area }: { servicos: Servico[]; c
           <li key={s.id}>
             <a
               className="linha-servico"
-              href={linkServico(config, s, area)}
+              href={linkServico(config, s, area, emoji)}
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => registrar('whatsapp', false, s.nome)}
@@ -86,14 +87,14 @@ export default function Servicos({ dados }: { dados: Dados }) {
             {resultados.length > 0 ? (
               <>
                 {resultados.map((s) => (
-                  <ListaPrecos key={s.id} servicos={[s]} config={dados.config} area={nomeArea(s.categoria_id)?.nome} />
+                  <ListaPrecos key={s.id} servicos={[s]} config={dados.config} area={nomeArea(s.categoria_id)?.nome} emoji={emojiArea(nomeArea(s.categoria_id))} />
                 ))}
                 <p className="nota" style={{ marginTop: 10 }}>Toque no serviço para pedir pelo WhatsApp.</p>
               </>
             ) : (
               <p className="nota">
                 Nenhum serviço com “{busca}”.{' '}
-                <a href={linkWhats(dados.config.whatsapp, `Olá, Maria Carolina! Vocês fazem ${busca}?`)} target="_blank" rel="noopener noreferrer">Pergunte no WhatsApp</a>: muita coisa é feita sob consulta.
+                <a href={linkWhats(dados.config.whatsapp, msgBuscaSemResultado(busca))} target="_blank" rel="noopener noreferrer">Pergunte no WhatsApp</a>: muita coisa é feita sob consulta.
               </p>
             )}
           </div>
@@ -123,7 +124,7 @@ export default function Servicos({ dados }: { dados: Dados }) {
             {dados.config.nota_servicos && <p className="nota">{dados.config.nota_servicos}</p>}
             <p className="nota dica-toque"><IconeWhats tamanho={14} /> Toque em um serviço para pedir pelo WhatsApp.</p>
           </div>
-          <ListaPrecos servicos={lista} config={dados.config} area={atual.nome} />
+          <ListaPrecos servicos={lista} config={dados.config} area={atual.nome} emoji={emojiArea(atual)} />
         </div>
         </>)}
       </div>

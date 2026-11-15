@@ -6,6 +6,7 @@ import type { Config } from '@/lib/tipos';
 import { supabase } from '@/lib/supabase';
 import { enviarPrivado, linkPrivado } from '@/lib/arquivos';
 import { brl, dataBR as formatarData, iso, whatsDoTelefone, type Cliente } from '@/lib/gestao';
+import { msgRelatorio } from '@/lib/mensagens';
 
 type Foto = { url: string; legenda: string; arquivo?: File; caminho?: string };
 
@@ -151,7 +152,7 @@ export default function AbaRelatorio({ config, avisar, relatorioId, clienteInici
             <button className="adm-btn pri" onClick={() => window.print()}>Gerar PDF de novo</button>
             {clienteAtual?.telefone && (
               <a className="adm-btn" target="_blank" rel="noopener noreferrer"
-                href={whatsDoTelefone(clienteAtual.telefone, `Olá${clienteAtual.responsavel ? `, ${clienteAtual.responsavel.split(' ')[0]}` : ''}! Segue o relatório da diligência (${r.tipo}${r.processo ? `, proc. ${r.processo}` : ''}), realizada em ${dataBR}. Resultado: ${r.resultado}.`)}>
+                href={whatsDoTelefone(clienteAtual.telefone, msgRelatorio({ nome: clienteAtual.responsavel || clienteAtual.nome, tipo: r.tipo, processo: r.processo, data: dataBR, resultado: r.resultado }))}>
                 Avisar cliente no WhatsApp
               </a>
             )}

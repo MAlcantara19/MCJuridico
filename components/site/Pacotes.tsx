@@ -1,7 +1,8 @@
 'use client';
 // Pacotes mensais de horas + pacote teste.
 import type { Dados } from '@/lib/tipos';
-import { MSG_PACOTE_PADRAO, linhas, linkWhats, preencher } from '@/lib/util';
+import { linhas, linkWhats } from '@/lib/util';
+import { MSG_PACOTE_PADRAO, emojiPacote, preencher } from '@/lib/mensagens';
 import type { Pacote } from '@/lib/tipos';
 import { registrar } from '@/lib/estatisticas';
 
@@ -10,7 +11,7 @@ export default function Pacotes({ dados }: { dados: Dados }) {
   const mensais = dados.pacotes.filter((p) => p.grupo === 'mensal');
   const teste = dados.pacotes.find((p) => p.grupo === 'teste');
   if (mensais.length === 0 && !teste) return null;
-  const linkPacote = (p: Pacote) => linkWhats(c.whatsapp, preencher(c.mensagem_pacote || MSG_PACOTE_PADRAO, { pacote: p.nome.toLowerCase().startsWith('pacote') ? p.nome : `pacote ${p.nome}`, horas: p.horas, preco: p.preco }));
+  const linkPacote = (p: Pacote) => linkWhats(c.whatsapp, preencher(c.mensagem_pacote || MSG_PACOTE_PADRAO, { pacote: p.nome.toLowerCase().startsWith('pacote') ? p.nome : `Pacote ${p.nome}`, horas: p.horas, preco: p.preco, publico: p.publico, emoji: emojiPacote(p) }));
 
   return (
     <section id="pacotes" className="secao">

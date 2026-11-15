@@ -2,7 +2,8 @@
 // Contatos + formulário de solicitação (salva no painel e abre o WhatsApp).
 import { useRef, useState, type FormEvent } from 'react';
 import type { Dados } from '@/lib/tipos';
-import { linkWhats } from '@/lib/util';
+import { linhas, linkWhats } from '@/lib/util';
+import { MSG_GERAL_PADRAO, emojiArea, msgSolicitacao } from '@/lib/mensagens';
 import { supabase } from '@/lib/supabase';
 import { IconeEmail, IconeInsta, IconeWhats } from './Icones';
 import { registrar } from '@/lib/estatisticas';
@@ -12,6 +13,7 @@ export default function Contato({ dados }: { dados: Dados }) {
   const [enviando, setEnviando] = useState(false);
   const [enviado, setEnviado] = useState(false);
   const [erro, setErro] = useState('');
+  const [escolhido, setEscolhido] = useState('');
   const abertoEm = useRef(Date.now()); // robôs enviam o formulário em menos de 3 segundos
 
   async function enviar(e: FormEvent<HTMLFormElement>) {
@@ -36,7 +38,8 @@ export default function Contato({ dados }: { dados: Dados }) {
       return;
     }
     setEnviado(true);
-    const texto = `Olá, Maria Carolina! Sou ${pedido.nome}.\n\nServiço: ${pedido.servico}\n${pedido.mensagem}\n\nContato: ${pedido.contato}`;
+    const serv = dados.servicos.find((x) => x.nome === pedido.servico);
+    const texto = msgSolicitacao({ ...pedido, emoji: emojiArea(dados.categorias.find((k) => k.id === serv?.categoria_id)) });
     window.open(linkWhats(c.whatsapp, texto), '_blank', 'noopener');
   }
 
@@ -54,7 +57,7 @@ export default function Contato({ dados }: { dados: Dados }) {
         <div className="contato">
           <ul className="canais">
             <li>
-              <a href={linkWhats(c.whatsapp, c.mensagem_whatsapp)} target="_blank" rel="noopener noreferrer" onClick={() => registrar('whatsapp')}>
+              <a href={linkWhats(c.whatsapp, c.mensagem_whatsapp || MSG_GERAL_PADRAO)} target="_blank" rel="noopener noreferrer" onClick={() => registrar('whatsapp')}>
                 <IconeWhats /> <span><small>WhatsApp</small>{c.whatsapp_exibicao || c.whatsapp}</span>
               </a>
             </li>
@@ -86,12 +89,21 @@ export default function Contato({ dados }: { dados: Dados }) {
               <label className="inteiro">E-mail (opcional)<input name="email" type="email" autoComplete="email" /></label>
               <label className="inteiro">
                 Serviço
-                <select name="servico" defaultValue="">
+                <select name="servico" value={escolhido} onChange={(e) => setEscolhido(e.target.value)}>
                   <option value="" disabled>Escolha um serviço</option>
                   {nomesServicos.map((n) => <option key={n} value={n}>{n}</option>)}
                   <option value="Outro">Outro / não sei qual</option>
                 </select>
               </label>
+              {(() => {
+                const itens = linhas(dados.servicos.find((x) => x.nome === escolhido)?.checklist || '');
+                return itens.length ? (
+                  <div className="inteiro checklist-site">
+                    <strong>📂 Para este serviço, tenha em mãos:</strong>
+                    <ul>{itens.map((d) => <li key={d}>{d}</li>)}</ul>
+                  </div>
+                ) : null;
+              })()}
               <label className="inteiro">Mensagem<textarea name="mensagem" required placeholder="Descreva o que precisa, prazos e cidade (se for presencial)." /></label>
               <label className="inteiro consentimento">
                 <input type="checkbox" name="aceite" required />

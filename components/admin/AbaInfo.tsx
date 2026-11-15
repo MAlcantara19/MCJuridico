@@ -46,9 +46,9 @@ export default function AbaInfo({ config, salvar }: { config: Config; salvar: (p
           { nome: 'whatsapp_exibicao', rotulo: 'WhatsApp como aparece no site', dica: 'Ex.: (24) 99327-0959' },
           { nome: 'instagram', rotulo: 'Instagram (sem @)' },
           { nome: 'email', rotulo: 'E-mail profissional', dica: 'Deixe vazio para esconder.' },
-          { nome: 'mensagem_whatsapp', rotulo: 'Mensagem pronta do WhatsApp (botões gerais)', area: true },
-          { nome: 'mensagem_servico', rotulo: 'Mensagem ao tocar em um serviço', area: true, dica: 'Use {servico}, {area} e {preco}. Ex.: Tenho interesse no serviço *{servico}*, valor {preco}.' },
-          { nome: 'mensagem_pacote', rotulo: 'Mensagem ao escolher um pacote', area: true, dica: 'Use {pacote}, {horas} e {preco}.' },
+          { nome: 'mensagem_whatsapp', rotulo: 'Mensagem pronta do WhatsApp (botões gerais)', area: true, dica: 'Cada Enter vira uma linha no WhatsApp. *texto* fica em negrito.' },
+          { nome: 'mensagem_servico', rotulo: 'Mensagem ao tocar em um serviço', area: true, dica: 'Use {emoji}, {servico}, {area} e {preco}. Linhas como “• Área: {area}” somem sozinhas se o valor estiver vazio.' },
+          { nome: 'mensagem_pacote', rotulo: 'Mensagem ao escolher um pacote', area: true, dica: 'Use {emoji}, {pacote}, {publico}, {horas} e {preco}.' },
           { nome: 'mensagem_cobranca', rotulo: 'Mensagem de cobrança (botão Cobrar)', area: true, dica: 'Use {responsavel}, {servico}, {data} e {valor}.' },
         ]}
       />
