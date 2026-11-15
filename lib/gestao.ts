@@ -135,7 +135,8 @@ export function intervalo(periodo: string): [string, string] {
 export function whatsDoTelefone(tel: string, texto?: string) {
   let n = (tel || '').replace(/\D/g, '');
   if (n.length <= 11) n = `55${n}`;
-  return `https://wa.me/${n}${texto ? `?text=${encodeURIComponent(texto)}` : ''}`;
+  // api.whatsapp.com (e não wa.me): o redirecionamento do wa.me troca emojis por � no WhatsApp do computador
+  return `https://api.whatsapp.com/send?phone=${n}${texto ? `&text=${encodeURIComponent(texto)}` : ''}`;
 }
 
 export { MSG_COBRANCA_PADRAO } from './mensagens';

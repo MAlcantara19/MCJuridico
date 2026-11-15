@@ -79,7 +79,8 @@ Rode `supabase/atualizacao-08.sql` (depois do 06 e do 07).
 
 1. Rode `supabase/atualizacao-09.sql`.
 2. Avaliações: na ficha do cliente, botão "Pedir avaliação". A avaliação chega desativada em Depoimentos; marque "Aparece no site" para publicar.
-3. Lembrete por e-mail (grátis):
+3. (O lembrete diário por e-mail foi retirado na atualização 12.)
+   Antes era assim, para referência:
    - Crie conta em resend.com com o e-mail que vai receber os lembretes e gere uma API Key.
    - Na Vercel > Settings > Environment Variables, adicione SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY, LEMBRETE_EMAIL e CRON_SECRET (veja .env.example) e faça Redeploy.
    - Teste em Painel > Master > "Enviar e-mail de teste agora".
@@ -97,6 +98,11 @@ Rode `supabase/atualizacao-11.sql`.
 - Todas as mensagens de WhatsApp no novo formato (saudação, item em negrito com emoji, tópicos e fechamento). Ficam em `lib/mensagens.ts`; as do site também em Textos e contatos
 - Site: "Qual serviço eu preciso?", simulador de pacote, nota média no topo, checklist no formulário
 - Painel: Respostas prontas, checklist e aviso automático no serviço, comprovante e recibo em PDF, despesas e lucro no Financeiro
+
+## Atualização 12
+
+- Retirado o lembrete diário por e-mail (Resend). Apague `app/api/lembrete` e `vercel.json`, e remova na Vercel as variáveis SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY, LEMBRETE_EMAIL e CRON_SECRET.
+- Links do WhatsApp agora usam api.whatsapp.com, para os emojis chegarem certos no WhatsApp do computador.
 
 ## Onde mexer
 

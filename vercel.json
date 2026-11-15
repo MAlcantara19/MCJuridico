@@ -1,5 +1,0 @@
-{
-  "crons": [
-    { "path": "/api/lembrete", "schedule": "0 21 * * *" }
-  ]
-}
