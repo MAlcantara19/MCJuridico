@@ -140,3 +140,30 @@
 .recibo-cabeca { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; }
 .recibo-valor { font-family: 'Cormorant Garamond', Georgia, serif; font-size: 30px; font-weight: 700; color: var(--rel-cor); border: 2px solid var(--rel-ouro); padding: 4px 16px; }
 .recibo-texto { font-size: 14px; line-height: 1.8; margin: 8px 0 18px; }
+.orc-pix { display: flex; gap: 18px; align-items: center; margin-top: 18px; padding: 14px; border: 1px solid #dfe3ea; border-radius: 8px; break-inside: avoid; }
+.orc-pix img { width: 130px; height: 130px; flex-shrink: 0; }
+.orc-pix code { display: block; font-size: 9px; word-break: break-all; color: #4b5873; }
+
+/* Prévia estilo WhatsApp */
+.zap-fundo { background: #0b141a; border-radius: 10px; padding: 18px; display: flex; justify-content: flex-end; }
+.zap-balao { background: #005c4b; color: #e9edef; padding: 8px 10px 20px; border-radius: 8px 0 8px 8px; max-width: 420px; font-family: 'Segoe UI', Helvetica, Arial, sans-serif; font-size: 14px; line-height: 1.4; position: relative; word-break: break-word; }
+.zap-hora { position: absolute; right: 8px; bottom: 4px; font-size: 11px; color: rgba(233, 237, 239, 0.6); }
+
+/* Lembrete no topo do painel */
+.faixa-lembrete { display: flex; align-items: stretch; background: color-mix(in srgb, var(--o) 16%, var(--s)); border-bottom: 1px solid var(--l); }
+.faixa-lembrete.alerta { background: color-mix(in srgb, #b3261e 12%, var(--s)); }
+.faixa-texto { flex: 1; text-align: left; background: none; border: 0; padding: 10px 20px; font: inherit; color: var(--t); cursor: pointer; font-size: 0.9rem; }
+.faixa-lembrete.alerta .faixa-texto strong:first-of-type { color: #b3261e; }
+.faixa-prox { color: var(--m); }
+.faixa-ver { margin-left: 10px; font-weight: 600; color: var(--o); white-space: nowrap; }
+.faixa-fechar { background: none; border: 0; padding: 0 18px; font-size: 1.3rem; color: var(--m); cursor: pointer; }
+@media (max-width: 600px) { .faixa-prox { display: none; } }
+
+/* Temas prontos */
+.temas { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 10px; }
+.tema-card { display: grid; gap: 6px; text-align: left; padding: 14px; border-radius: 10px; border: 1px solid var(--l); background: transparent; color: var(--t); font: inherit; cursor: pointer; }
+.tema-card:hover { border-color: var(--o); }
+.tema-card.ativo { border-color: var(--o); box-shadow: 0 0 0 2px var(--o); }
+.tema-amostra { display: grid; place-items: center; height: 64px; border-radius: 8px; font-size: 1.8rem; background: var(--a); color: var(--b); }
+.tema-minimalista .tema-amostra { background: #fff; color: var(--a); border: 1px solid #dfe3ea; }
+.tema-moderno .tema-amostra { background: linear-gradient(135deg, var(--a), color-mix(in srgb, var(--a) 70%, var(--b))); font-weight: 800; border-radius: 14px; }

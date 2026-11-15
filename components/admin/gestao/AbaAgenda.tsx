@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { combina } from '@/lib/util';
 import { TIPOS_AGENDA, dataBR, diaSemana, hojeISO, rotulo, somarDias, type Compromisso } from '@/lib/gestao';
 import { useBase } from './useBase';
+import AgendaCelular from './AgendaCelular';
 
 type Aviso = (m: string, e?: boolean) => void;
 type Visao = 'pendentes' | 'hoje' | 'semana' | 'feitos';
@@ -61,6 +62,8 @@ export default function AbaAgenda({ avisar }: { avisar: Aviso }) {
         <h2>Agenda</h2>
         <p className="adm-sub">Prazos, diligências e audiências. Marque como feito quando terminar.</p>
       </div>
+
+      <AgendaCelular avisar={avisar} />
 
       {atrasados.length > 0 && visao !== 'feitos' && (
         <div className="adm-item" style={{ borderColor: '#b3261e' }}>

@@ -524,3 +524,53 @@ a.selo-seg:hover { border-color: var(--ouro); color: #fff; }
 .sim-economia { margin: 4px 0 18px; color: rgba(255, 255, 255, 0.85); font-size: 0.92rem; }
 .sim-economia strong { color: #fff; }
 @media (max-width: 860px) { .simulador { grid-template-columns: 1fr; } }
+
+/* =========================================================
+   TEMAS PRONTOS (painel > Visual e layout > Temas prontos)
+   ========================================================= */
+
+/* ---------- Moderno: sem serifa, cantos arredondados, degradê ---------- */
+.estilo-moderno .topo { background: linear-gradient(135deg, var(--navy) 0%, color-mix(in srgb, var(--navy) 72%, var(--ouro)) 100%); }
+.estilo-moderno .topo-nome, .estilo-moderno .secao-cabeca h2 { font-weight: 700; letter-spacing: -0.035em; }
+.estilo-moderno .topo-nome { font-size: clamp(2.6rem, 7vw, 5.2rem); line-height: 1; }
+.estilo-moderno .secao-cabeca h2 { font-size: clamp(1.9rem, 4vw, 2.7rem); }
+.estilo-moderno .filete { width: 40px; height: 4px; border-radius: 4px; }
+.estilo-moderno .btn, .estilo-moderno .aba, .estilo-moderno .btn-pacote { border-radius: 14px; }
+.estilo-moderno .pacotes { border: 0; gap: 14px; background: transparent; overflow: visible; }
+.estilo-moderno .pacote { border: 1px solid var(--linha); border-radius: 20px; background: var(--cartao); box-shadow: 0 10px 30px rgba(14, 27, 51, 0.06); }
+.estilo-moderno .pacote.destaque { background: var(--navy); }
+.estilo-moderno .cartao-pacote, .estilo-moderno .sim-resultado, .estilo-moderno .guia, .estilo-moderno .guia-pacote,
+.estilo-moderno .canais a, .estilo-moderno .form input, .estilo-moderno .form select, .estilo-moderno .form textarea, .estilo-moderno .teste { border-radius: 18px; }
+.estilo-moderno .guia-opcao { border-radius: 14px; }
+.estilo-moderno .lista-precos li { border-bottom-style: dashed; }
+
+/* ---------- Minimalista: fundo claro, linhas finas, sem enfeites ---------- */
+.estilo-minimalista .cabecalho { background: color-mix(in srgb, var(--bg) 92%, transparent); color: var(--texto); border-bottom: 1px solid var(--linha); }
+.estilo-minimalista .marca, .estilo-minimalista .marca-nome { color: var(--titulo); }
+.estilo-minimalista .menu a { color: var(--suave); }
+.estilo-minimalista .menu a:hover { color: var(--titulo); }
+.estilo-minimalista .cabecalho .icone-btn { color: var(--texto); border-color: var(--linha); }
+.estilo-minimalista .topo { background: var(--bg); color: var(--texto); border-bottom: 1px solid var(--linha); }
+.estilo-minimalista .topo::after, .estilo-minimalista .topo-efeito { display: none; }
+.estilo-minimalista .topo-nome { color: var(--titulo); font-weight: 400; }
+.estilo-minimalista .topo-desc { color: var(--suave); }
+.estilo-minimalista .topo-fatos { color: var(--suave); }
+.estilo-minimalista .topo-nota { color: var(--suave); border-color: var(--linha); }
+.estilo-minimalista .topo-nota strong { color: var(--titulo); }
+.estilo-minimalista .btn-ouro { background: var(--titulo); color: var(--bg); }
+.estilo-minimalista .btn-ouro:hover { background: var(--ouro); color: #fff; }
+.estilo-minimalista .btn-linha { border-color: var(--linha); color: var(--texto); }
+.estilo-minimalista .btn-linha:hover { border-color: var(--titulo); background: transparent; }
+.estilo-minimalista .btn, .estilo-minimalista .aba, .estilo-minimalista .btn-pacote { border-radius: 0; }
+.estilo-minimalista .secao-cabeca h2 { font-weight: 400; }
+.estilo-minimalista .secao-sup { background: var(--bg); border-top: 1px solid var(--linha); }
+.estilo-minimalista .filete { width: 24px; height: 1px; }
+.estilo-minimalista .pacote.destaque, .estilo-minimalista .cartao-pacote, .estilo-minimalista .sim-resultado, .estilo-minimalista .guia-pacote { background: transparent; color: var(--texto); border: 1px solid var(--titulo); }
+.estilo-minimalista .pacote.destaque h3, .estilo-minimalista .pacote.destaque .valor, .estilo-minimalista .cartao-pacote h3, .estilo-minimalista .sim-resultado h3 { color: var(--titulo); }
+.estilo-minimalista .pacote.destaque .publico, .estilo-minimalista .cartao-pacote p, .estilo-minimalista .cartao-pacote .por,
+.estilo-minimalista .sim-detalhe, .estilo-minimalista .sim-economia, .estilo-minimalista .sim-valor small { color: var(--suave); }
+.estilo-minimalista .sim-economia strong { color: var(--titulo); }
+.estilo-minimalista .sim-resultado::before { display: none; }
+.estilo-minimalista .guia, .estilo-minimalista .canais a { border-radius: 0; }
+.estilo-minimalista .moldura-quadrado::before, .estilo-minimalista .moldura-retrato::before { display: none; }
+@media (max-width: 900px) { .estilo-minimalista .menu.aberto { background: var(--bg); } .estilo-minimalista .menu.aberto a { border-color: var(--linha); } }

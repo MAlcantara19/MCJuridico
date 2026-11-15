@@ -1,10 +1,10 @@
 'use client';
 // Respostas prontas: modelos de mensagem para copiar e colar no WhatsApp Web ou abrir direto na conversa.
-// {nome} = primeiro nome do cliente · {cliente} = nome do escritório/cliente · {site} = endereço do site
+// {nome} = primeiro nome do cliente · {cliente} = nome do escritório/cliente · {site} = endereço do site · {pix} = Pix copia e cola
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { combina } from '@/lib/util';
-import { whatsDoTelefone, type Cliente } from '@/lib/gestao';
+import { pixDe, whatsDoTelefone, type Cliente } from '@/lib/gestao';
 import CrudLista from './CrudLista';
 
 type Resposta = { id: number; titulo: string; texto: string; ordem: number; ativo: boolean };
@@ -17,13 +17,16 @@ export default function AbaRespostas({ avisar }: { avisar: (m: string, e?: boole
   const [busca, setBusca] = useState('');
   const [editando, setEditando] = useState(false);
   const [versao, setVersao] = useState(0);
+  const [pix, setPix] = useState('');
 
   useEffect(() => {
     (async () => {
-      const [r, c] = await Promise.all([
+      const [r, c, cf] = await Promise.all([
         supabase().from('respostas').select('*').eq('ativo', true).order('ordem'),
         supabase().from('clientes').select('*').order('nome'),
+        supabase().from('configuracoes').select('pix_chave, pix_nome, pix_cidade, nome').eq('id', 1).maybeSingle(),
       ]);
+      setPix(pixDe(cf.data ?? undefined));
       if (r.error) avisar(`Erro: ${r.error.message}. Rodou o atualizacao-11.sql?`, true);
       setRespostas((r.data as Resposta[]) ?? []);
       setClientes((c.data as Cliente[]) ?? []);
@@ -36,7 +39,8 @@ export default function AbaRespostas({ avisar }: { avisar: (m: string, e?: boole
   const preencher = (t: string) => t
     .replace(/,? ?\{nome\}/g, (m) => (nome ? m.replace('{nome}', nome) : ''))
     .replaceAll('{cliente}', cliente?.nome || nomeLivre || '')
-    .replaceAll('{site}', site);
+    .replaceAll('{site}', site)
+    .replaceAll('{pix}', pix || '(cadastre a chave Pix em Textos e contatos)');
 
   async function copiar(r: Resposta) {
     const texto = preencher(r.texto);
@@ -52,7 +56,7 @@ export default function AbaRespostas({ avisar }: { avisar: (m: string, e?: boole
           <h2 style={{ margin: 0 }}>Editar respostas</h2>
           <button className="adm-btn" onClick={() => { setEditando(false); setVersao((n) => n + 1); }}>← Voltar para usar</button>
         </div>
-        <p className="adm-sub">Use {'{nome}'} para o primeiro nome do cliente, {'{cliente}'} para o nome do escritório e {'{site}'} para o endereço do site. *Negrito* funciona no WhatsApp.</p>
+        <p className="adm-sub">Use {'{nome}'} para o primeiro nome do cliente, {'{cliente}'} para o nome do escritório, {'{site}'} para o endereço do site e {'{pix}'} para o Pix copia e cola. *Negrito* funciona no WhatsApp.</p>
         <CrudLista
           tabela="respostas"
           avisar={avisar}

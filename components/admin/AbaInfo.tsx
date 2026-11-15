@@ -2,6 +2,7 @@
 // Textos do site e contatos.
 import type { Config } from '@/lib/tipos';
 import FormConfig from './FormConfig';
+import PreviaMensagens from './PreviaMensagens';
 
 export default function AbaInfo({ config, salvar }: { config: Config; salvar: (p: Partial<Config>) => Promise<void> }) {
   return (
@@ -50,6 +51,17 @@ export default function AbaInfo({ config, salvar }: { config: Config; salvar: (p
           { nome: 'mensagem_servico', rotulo: 'Mensagem ao tocar em um serviço', area: true, dica: 'Use {emoji}, {servico}, {area} e {preco}. Linhas como “• Área: {area}” somem sozinhas se o valor estiver vazio.' },
           { nome: 'mensagem_pacote', rotulo: 'Mensagem ao escolher um pacote', area: true, dica: 'Use {emoji}, {pacote}, {publico}, {horas} e {preco}.' },
           { nome: 'mensagem_cobranca', rotulo: 'Mensagem de cobrança (botão Cobrar)', area: true, dica: 'Use {responsavel}, {servico}, {data} e {valor}.' },
+        ]}
+      />
+      <PreviaMensagens config={config} />
+      <FormConfig
+        titulo="Pix (cobranças, orçamentos e respostas prontas)"
+        config={config}
+        salvar={salvar}
+        campos={[
+          { nome: 'pix_chave', rotulo: 'Chave Pix', dica: 'CPF, CNPJ, e-mail, celular ou chave aleatória. Deixe vazio para não mandar Pix.' },
+          { nome: 'pix_nome', rotulo: 'Nome do recebedor', dica: 'Como aparece no banco. Ex.: Maria Carolina Costa' },
+          { nome: 'pix_cidade', rotulo: 'Cidade', dica: 'Ex.: Tres Rios' },
         ]}
       />
       <FormConfig

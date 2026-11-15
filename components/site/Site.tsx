@@ -74,7 +74,7 @@ export default function Site({ dados }: { dados: Dados }) {
 
   // Alterna o fundo cinza claro entre as seções, para separar visualmente.
   return (
-    <div className="site" style={estilo} ref={raiz}>
+    <div className={`site estilo-${c.tema_estilo || 'classico'}`} style={estilo} ref={raiz}>
       <Cabecalho config={c} secoes={ordem} />
       <main>
         <Topo config={c} avaliacoes={dados.depoimentos} />

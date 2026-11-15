@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Config } from '@/lib/tipos';
 import { supabase } from '@/lib/supabase';
-import { brl, dataBR, hojeISO, somarDias, whatsDoTelefone, type Cliente } from '@/lib/gestao';
+import { brl, dataBR, hojeISO, pixDe, somarDias, whatsDoTelefone, type Cliente } from '@/lib/gestao';
 import { msgOrcamento } from '@/lib/mensagens';
+import QRCode from 'qrcode';
 
 type Item = { nome: string; qtd: number; valor: number; referencia?: string };
 type Aviso = (m: string, e?: boolean) => void;
@@ -48,6 +49,14 @@ export default function Orcamento({ cliente, config, avisar, fechar }: { cliente
   const desc = Math.min(subtotal, Number(desconto.replace(',', '.')) || 0);
   const total = subtotal - desc;
   const validoAte = somarDias(hojeISO(), Number(validade) || 7);
+
+  // Pix copia e cola + QR Code com o valor do orçamento (se a chave estiver no painel)
+  const pix = total > 0 ? pixDe(config, total, `ORC${numero}`) : '';
+  const [qr, setQr] = useState('');
+  useEffect(() => {
+    if (!pix) { setQr(''); return; }
+    QRCode.toDataURL(pix, { margin: 1, width: 220 }).then(setQr).catch(() => setQr(''));
+  }, [pix]);
   const areas = Array.from(new Set(tabela.map((t) => t.area)));
   const filtrada = tabela.filter((t) => !busca.trim() || t.nome.toLowerCase().includes(busca.toLowerCase()));
 
@@ -72,7 +81,7 @@ export default function Orcamento({ cliente, config, avisar, fechar }: { cliente
         desconto: desc ? brl(desc) : undefined,
         total: brl(total),
         validade: dataBR(validoAte),
-      });
+      }) + (pix ? `\n\n💠 *Pix copia e cola* (já com o valor):\n${pix}` : '');
       window.open(whatsDoTelefone(cliente.telefone, texto), '_blank', 'noopener');
     }
   }
@@ -170,6 +179,16 @@ export default function Orcamento({ cliente, config, avisar, fechar }: { cliente
         <h2>Condições</h2>
         {obs && <p className="rel-texto">{obs}</p>}
         <p className="rel-texto">Pagamento antecipado. Custas, taxas e deslocamentos longos são repassados ao cliente.</p>
+        {pix && qr && (
+          <div className="orc-pix">
+            <img src={qr} alt="QR Code Pix" />
+            <div>
+              <h2 style={{ marginTop: 0 }}>Pague com Pix</h2>
+              <p className="rel-texto">Aponte a câmera do app do banco para o QR Code ou use o Pix copia e cola:</p>
+              <code>{pix}</code>
+            </div>
+          </div>
+        )}
         <footer className="rel-assinatura">
           <div className="rel-linha" />
           <div>{config.nome}</div>

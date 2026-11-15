@@ -43,6 +43,10 @@ export type Config = {
   hero_ajuste: 'cobrir' | 'conter';
   hero_efeito: 'nenhum' | 'brilho' | 'grade' | 'pontos' | 'linhas';
   mostrar_nota: boolean;
+  pix_chave: string;
+  pix_nome: string;
+  pix_cidade: string;
+  tema_estilo: 'classico' | 'moderno' | 'minimalista';
   hora_avulsa: number;
   hora_extra: number;
   animacoes: boolean;

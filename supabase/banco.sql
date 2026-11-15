@@ -2,7 +2,7 @@
 -- MC JURÍDICO (site da Maria Carolina Costa) — banco de dados (Supabase)
 -- Cole tudo no Supabase > SQL Editor > New query e clique em RUN.
 -- Pode rodar de novo sem medo: ele não duplica nada.
--- Depois rode também as atualizações 02 a 11, nessa ordem.
+-- Depois rode também as atualizações 02 a 13, nessa ordem (não existe 12).
 -- =====================================================================
 
 -- ---------- TABELAS ----------

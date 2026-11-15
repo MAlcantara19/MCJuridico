@@ -16,6 +16,7 @@ import AbaResumo from './AbaResumo';
 import AbaRelatorio from './AbaRelatorio';
 import AbaArquivos from './AbaArquivos';
 import AbaRespostas from './AbaRespostas';
+import FaixaLembrete from './FaixaLembrete';
 import AbaClientes from './gestao/AbaClientes';
 import AbaFinanceiro from './gestao/AbaFinanceiro';
 import AbaAgenda from './gestao/AbaAgenda';
@@ -223,6 +224,7 @@ export default function Painel() {
         </div>
       </header>
 
+      <FaixaLembrete irPara={setAba} />
       <div className="adm-corpo">
         <nav className="adm-abas" aria-label="Seções do painel">
           {abas.map((a) => (

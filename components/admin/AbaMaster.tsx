@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import type { Config } from '@/lib/tipos';
 import CrudLista from './CrudLista';
 import FormConfig from './FormConfig';
+import Backup from './Backup';
 
 export default function AbaMaster({ config, salvar, avisar }: {
   config: Config;
@@ -66,6 +67,8 @@ export default function AbaMaster({ config, salvar, avisar }: {
 
         ]}
       />
+
+      <Backup avisar={avisar} />
 
       <FormConfig
         titulo="Crédito do desenvolvedor (rodapé)"

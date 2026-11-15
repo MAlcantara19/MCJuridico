@@ -84,7 +84,7 @@ export default function AbaFinanceiro({ avisar, config }: { avisar: Aviso; confi
   function cobrar(a: Atendimento) {
     const c = clientes.find((x) => x.id === a.cliente_id);
     if (!c?.telefone) return avisar('Este serviço não tem cliente com WhatsApp cadastrado.', true);
-    window.open(whatsDoTelefone(c.telefone, mensagemCobranca(config.mensagem_cobranca, { responsavel: c.responsavel, servico: a.servico, data: a.data, valor: Number(a.valor) || 0 })), '_blank', 'noopener');
+    window.open(whatsDoTelefone(c.telefone, mensagemCobranca(config.mensagem_cobranca, { responsavel: c.responsavel, servico: a.servico, data: a.data, valor: Number(a.valor) || 0 }, config)), '_blank', 'noopener');
   }
 
   // Planilha do período (abre no Excel)

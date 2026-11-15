@@ -1,5 +1,14 @@
 // Tipos e funções da parte de gestão (clientes, serviços realizados, agenda).
 import { MSG_COBRANCA_PADRAO, msgPedirAvaliacao } from './mensagens';
+import { pixCopiaECola } from './pix';
+
+type DadosPix = { pix_chave?: string; pix_nome?: string; pix_cidade?: string; nome?: string };
+
+// Pix copia e cola com valor (vazio se a chave não estiver cadastrada no painel)
+export function pixDe(c: DadosPix | undefined, valor?: number, identificador?: string) {
+  if (!c?.pix_chave) return '';
+  return pixCopiaECola({ chave: c.pix_chave, nome: c.pix_nome || c.nome || '', cidade: c.pix_cidade || 'Tres Rios', valor, identificador });
+}
 
 export type Cliente = {
   id: number; nome: string; tipo: string; responsavel: string; documento: string;
@@ -142,13 +151,14 @@ export function whatsDoTelefone(tel: string, texto?: string) {
 export { MSG_COBRANCA_PADRAO } from './mensagens';
 
 // Monta a mensagem de cobrança com os dados do serviço
-export function mensagemCobranca(modelo: string | undefined, dados: { responsavel?: string; servico: string; data: string; valor: number }) {
+export function mensagemCobranca(modelo: string | undefined, dados: { responsavel?: string; servico: string; data: string; valor: number }, pix?: DadosPix) {
   const primeiro = (dados.responsavel || '').trim().split(' ')[0];
   return (modelo || MSG_COBRANCA_PADRAO)
     .replaceAll('{responsavel}', primeiro ? `, ${primeiro}` : '')
     .replaceAll('{servico}', dados.servico)
     .replaceAll('{data}', dataBR(dados.data))
-    .replaceAll('{valor}', brl(dados.valor));
+    .replaceAll('{valor}', brl(dados.valor))
+    + (pix?.pix_chave ? `\n\n💠 *Pix copia e cola* (já com o valor):\n${pixDe(pix, dados.valor)}` : '');
 }
 
 // Baixa uma lista como planilha (CSV que o Excel abre direto, com acentos e vírgula decimal)

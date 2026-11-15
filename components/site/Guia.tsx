@@ -52,6 +52,7 @@ export default function Guia({ dados }: { dados: Dados }) {
   const [local, setLocal] = useState<Opcao | null>(null);
   const [tarefas, setTarefas] = useState<Opcao[]>([]);
   const [freq, setFreq] = useState<Opcao | null>(null);
+  const [verTodos, setVerTodos] = useState(false);
 
   const cat = (s: Servico) => dados.categorias.find((k) => k.id === s.categoria_id);
   const resultado = (() => {
@@ -68,12 +69,18 @@ export default function Guia({ dados }: { dados: Dados }) {
   const pacote = (() => {
     if (freq?.valor !== 'mensal') return null;
     if (local?.valor === 'presencial') return dados.pacotes.find((p) => p.grupo === 'correspondente') ?? null;
+    // Pessoa física: começar pelo pacote teste, sem compromisso mensal
+    if (perfil?.valor === 'pessoa') return dados.pacotes.find((p) => p.grupo === 'teste') ?? null;
     const mensais = dados.pacotes.filter((p) => p.grupo === 'mensal');
     const nome = perfil?.valor === 'escritorio' ? 'juridico' : perfil?.valor === 'empresa' ? 'essencial' : 'start';
     return mensais.find((p) => normalizar(p.nome).includes(nome)) ?? mensais.find((p) => p.destaque) ?? mensais[0] ?? null;
   })();
 
-  function reiniciar() { setPasso(0); setPerfil(null); setLocal(null); setTarefas([]); setFreq(null); }
+  function reiniciar() { setPasso(0); setPerfil(null); setLocal(null); setTarefas([]); setFreq(null); setVerTodos(false); }
+
+  // Mensagem e tela mostram os 3 principais; o resto fica em "ver mais"
+  const principais = resultado.slice(0, 3);
+  const extras = resultado.length - principais.length;
 
   const texto = msgGuia({
     perfil: perfil?.rotulo ?? '',
@@ -81,7 +88,7 @@ export default function Guia({ dados }: { dados: Dados }) {
     frequencia: freq?.rotulo ?? '',
     pacote: pacote ? `${emojiPacote(pacote)} ${pacote.nome} (${pacote.preco})` : undefined,
     servicos: resultado.length
-      ? resultado.map((s) => ({ nome: s.nome, preco: s.preco, emoji: emojiArea(cat(s)) }))
+      ? principais.map((s) => ({ nome: s.nome, preco: s.preco, emoji: emojiArea(cat(s)) }))
       : tarefas.map((t) => ({ nome: t.rotulo, preco: 'a combinar', emoji: t.emoji })),
   });
 
@@ -140,16 +147,20 @@ export default function Guia({ dados }: { dados: Dados }) {
               <h3>{resultado.length ? 'Estes serviços combinam com você:' : 'Seu caso é sob medida:'}</h3>
               {resultado.length > 0 ? (
                 <ul className="lista-precos">
-                  {resultado.map((s) => (
+                  {(verTodos ? resultado : principais).map((s) => (
                     <li key={s.id}><span className="linha-servico"><span className="nome">{emojiArea(cat(s))} {s.nome}</span><span className="pontilhado" aria-hidden="true" /><span className="preco">{s.preco}</span></span></li>
                   ))}
                 </ul>
-              ) : (
+              ) : null}
+              {extras > 0 && !verTodos && (
+                <button className="guia-voltar" onClick={() => setVerTodos(true)}>Ver mais {extras} serviço{extras > 1 ? 's' : ''} relacionado{extras > 1 ? 's' : ''} ↓</button>
+              )}
+              {resultado.length === 0 && (
                 <p className="nota">Não achei um serviço exato na tabela, mas dá para montar um atendimento para você. Mande os detalhes pelo WhatsApp.</p>
               )}
               {pacote && (
                 <div className="guia-pacote">
-                  <span>{emojiPacote(pacote)} Como é todo mês, vale a pena o <strong>{pacote.nome}</strong> ({pacote.horas})</span>
+                  <span>{emojiPacote(pacote)} {pacote.grupo === 'teste' ? <>Para começar sem compromisso: <strong>{pacote.nome}</strong> ({pacote.horas})</> : <>Como é todo mês, vale a pena o <strong>{pacote.nome}</strong> ({pacote.horas})</>}</span>
                   <strong>{pacote.preco}</strong>
                 </div>
               )}

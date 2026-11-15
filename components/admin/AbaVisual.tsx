@@ -7,7 +7,14 @@ import { enviarArquivo } from '@/lib/arquivos';
 import Topo from '@/components/site/Topo';
 import { estiloMarca } from '@/components/site/PaginaSimples';
 
-const FONTES = ['Cormorant Garamond', 'Playfair Display', 'Libre Baskerville', 'Marcellus'];
+const FONTES = ['Cormorant Garamond', 'Playfair Display', 'Libre Baskerville', 'Marcellus', 'Montserrat'];
+
+// Temas prontos: mudam o estilo geral e já ajustam cores, fonte e apresentação
+const TEMAS = [
+  { id: 'classico', nome: 'Clássico', desc: 'Azul-marinho, dourado e títulos serifados. Elegante e tradicional.', v: { tema_estilo: 'classico', cor_primaria: '#0E1B33', cor_destaque: '#A8894E', fonte_titulo: 'Cormorant Garamond', hero_layout: 'com_foto', hero_moldura: 'quadrado', hero_efeito: 'brilho' } },
+  { id: 'moderno', nome: 'Moderno', desc: 'Títulos sem serifa, cantos arredondados e degradê no topo.', v: { tema_estilo: 'moderno', cor_primaria: '#13294B', cor_destaque: '#B79B6C', fonte_titulo: 'Montserrat', hero_layout: 'com_foto', hero_moldura: 'circulo', hero_efeito: 'grade' } },
+  { id: 'minimalista', nome: 'Minimalista', desc: 'Fundo claro, linhas finas e muito espaço. Discreto e leve.', v: { tema_estilo: 'minimalista', cor_primaria: '#111318', cor_destaque: '#A8894E', fonte_titulo: 'Libre Baskerville', hero_layout: 'classico', hero_moldura: 'livre', hero_efeito: 'nenhum' } },
+];
 
 // Combinações prontas (cor principal + destaque)
 const PALETAS = [
@@ -27,6 +34,7 @@ export default function AbaVisual({ config, salvar, avisar }: {
     cor_destaque: config.cor_destaque || '#A8894E',
     fonte_titulo: config.fonte_titulo || FONTES[0],
     tema_padrao: config.tema_padrao || 'claro',
+    tema_estilo: config.tema_estilo || 'classico',
     hero_layout: config.hero_layout || 'com_foto',
     hero_moldura: config.hero_moldura || 'quadrado',
     hero_ajuste: config.hero_ajuste || 'cobrir',
@@ -70,6 +78,20 @@ export default function AbaVisual({ config, salvar, avisar }: {
       <div>
         <h2>Visual e layout</h2>
         <p className="adm-sub">Mude cores, fonte, tema e a ordem das partes do site. Depois clique em Salvar visual.</p>
+      </div>
+
+      <div className="adm-item">
+        <h3>Temas prontos</h3>
+        <div className="temas">
+          {TEMAS.map((t) => (
+            <button key={t.id} className={`tema-card tema-${t.id}${v.tema_estilo === t.id ? ' ativo' : ''}`} onClick={() => setV((x) => ({ ...x, ...(t.v as Partial<typeof x>) }))}>
+              <span className="tema-amostra" style={{ ['--a' as string]: t.v.cor_primaria, ['--b' as string]: t.v.cor_destaque, fontFamily: t.v.fonte_titulo }}>Aa</span>
+              <strong>{t.nome}</strong>
+              <span className="adm-dica" style={{ margin: 0 }}>{t.desc}</span>
+            </button>
+          ))}
+        </div>
+        <p className="adm-dica" style={{ margin: 0 }}>Escolher um tema muda cores, fonte e apresentação. Depois dá para ajustar cada item abaixo. Confira na prévia e clique em Salvar visual.</p>
       </div>
 
       <div className="adm-item">
@@ -155,7 +177,7 @@ export default function AbaVisual({ config, salvar, avisar }: {
         </div>
         <p className="adm-dica">Prévia (muda na hora; só vai para o site quando clicar em Salvar visual):</p>
         <div className="previa-topo">
-          <div className="site" style={estiloMarca({ ...config, ...v } as Config)}>
+          <div className={`site estilo-${v.tema_estilo}`} style={estiloMarca({ ...config, ...v } as Config)}>
             <Topo config={{ ...config, ...v } as Config} />
           </div>
         </div>

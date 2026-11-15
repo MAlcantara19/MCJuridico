@@ -167,8 +167,8 @@ function FichaCliente({ id, config, navegar, clientes, servicos, avisar, voltar,
     if (!v.telefone) return avisar('Cadastre o WhatsApp do cliente para cobrar.', true);
     const total = lista.reduce((s, a) => s + (Number(a.valor) || 0), 0);
     const texto = lista.length === 1
-      ? mensagemCobranca(config.mensagem_cobranca, { responsavel: v.responsavel, servico: lista[0].servico, data: lista[0].data, valor: total })
-      : mensagemCobranca(config.mensagem_cobranca, { responsavel: v.responsavel, servico: `${lista.length} serviços (${lista.map((a) => a.servico).join(', ')})`, data: lista[lista.length - 1].data, valor: total });
+      ? mensagemCobranca(config.mensagem_cobranca, { responsavel: v.responsavel, servico: lista[0].servico, data: lista[0].data, valor: total }, config)
+      : mensagemCobranca(config.mensagem_cobranca, { responsavel: v.responsavel, servico: `${lista.length} serviços (${lista.map((a) => a.servico).join(', ')})`, data: lista[lista.length - 1].data, valor: total }, config);
     window.open(whatsDoTelefone(v.telefone, texto), '_blank', 'noopener');
   }
 

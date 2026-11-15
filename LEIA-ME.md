@@ -104,6 +104,17 @@ Rode `supabase/atualizacao-11.sql`.
 - Retirado o lembrete diário por e-mail (Resend). Apague `app/api/lembrete` e `vercel.json`, e remova na Vercel as variáveis SUPABASE_SERVICE_ROLE_KEY, RESEND_API_KEY, LEMBRETE_EMAIL e CRON_SECRET.
 - Links do WhatsApp agora usam api.whatsapp.com, para os emojis chegarem certos no WhatsApp do computador.
 
+## Atualização 13
+
+Rode `supabase/atualizacao-13.sql`.
+- Faixa de lembrete no topo do painel (atrasados, hoje, amanhã)
+- Agenda > "Ver esta agenda no celular": link de calendário para Google Agenda / iPhone
+- Textos e contatos: prévia das mensagens no estilo WhatsApp e botão "Testar no meu WhatsApp"
+- Pix copia e cola (Textos e contatos > Pix) na cobrança, no orçamento (com QR Code) e em {pix} nas respostas prontas
+- Guia: pessoa física recebe o pacote teste; resultado com 3 serviços e "ver mais"
+- Master: Baixar backup (.json)
+- Visual e layout: temas prontos (Clássico, Moderno, Minimalista)
+
 ## Onde mexer
 
 - Pelo painel `/admin` (sem código): textos, marca, cores, fonte, tema, logo, foto,
