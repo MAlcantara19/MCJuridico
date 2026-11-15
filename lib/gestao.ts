@@ -145,7 +145,8 @@ export function whatsDoTelefone(tel: string, texto?: string) {
   let n = (tel || '').replace(/\D/g, '');
   if (n.length <= 11) n = `55${n}`;
   // api.whatsapp.com (e não wa.me): o redirecionamento do wa.me troca emojis por � no WhatsApp do computador
-  return `https://api.whatsapp.com/send?phone=${n}${texto ? `&text=${encodeURIComponent(texto)}` : ''}`;
+  // Endereço final do WhatsApp (com a barra e os parâmetros que ele mesmo usa), sem nenhum redirecionamento no meio
+  return `https://api.whatsapp.com/send/?phone=${n}${texto ? `&text=${encodeURIComponent(texto)}` : ''}&type=phone_number&app_absent=0`;
 }
 
 export { MSG_COBRANCA_PADRAO } from './mensagens';

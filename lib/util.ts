@@ -4,7 +4,8 @@
 export function linkWhats(numero: string, texto?: string) {
   const n = (numero || '').replace(/\D/g, '');
   // api.whatsapp.com (e não wa.me): o redirecionamento do wa.me troca emojis por � no WhatsApp do computador
-  return `https://api.whatsapp.com/send?phone=${n}${texto ? `&text=${encodeURIComponent(texto)}` : ''}`;
+  // Endereço final do WhatsApp (com a barra e os parâmetros que ele mesmo usa), sem nenhum redirecionamento no meio
+  return `https://api.whatsapp.com/send/?phone=${n}${texto ? `&text=${encodeURIComponent(texto)}` : ''}&type=phone_number&app_absent=0`;
 }
 
 // Tira acentos e deixa minúsculo (para a busca do assistente).
