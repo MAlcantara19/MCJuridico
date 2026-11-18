@@ -8,8 +8,9 @@ import { linhas } from '@/lib/util';
 import { enviarPrivado, linkEnvio, linkPrivado } from '@/lib/arquivos';
 import NotasPedido from './NotasPedido';
 import EnviosPedido from './EnviosPedido';
+import HistoricoPedido from './HistoricoPedido';
 import { msgPedirDocumentos, msgStatus } from '@/lib/mensagens';
-import { FORMAS_PAGAMENTO, STATUS, brl, hojeISO, whatsDoTelefone, type Atendimento, type Cliente } from '@/lib/gestao';
+import { FORMAS_PAGAMENTO, STATUS, brl, dataBR, ehDiaUtil, hojeISO, nomeFeriado, somarDiasUteis, whatsDoTelefone, type Atendimento, type Cliente } from '@/lib/gestao';
 
 type Props = {
   inicial?: Partial<Atendimento>;
@@ -39,22 +40,37 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
   const [comprovante, setComprovante] = useState<string | null>(inicial?.comprovante ?? null);
   const [arquivoComp, setArquivoComp] = useState<File | null>(null);
   const [checklists, setChecklists] = useState<Record<string, string>>({});
+  const [prazos, setPrazos] = useState<Record<string, number>>({});
+  const [salvo, setSalvo] = useState<{ codigo: string; status: string } | null>(null);
+  const [comArea, setComArea] = useState(true);
+  const [comAvaliacao, setComAvaliacao] = useState(true);
   const [salvando, setSalvando] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null); // mensagem pronta para o cliente
   const mudar = (campo: string, valor: any) => setV((x) => ({ ...x, [campo]: valor }));
 
   // Checklist cadastrado em cada serviço (painel > Serviços)
   useEffect(() => {
-    supabase().from('servicos').select('nome, checklist').then(({ data }) => {
+    supabase().from('servicos').select('nome, checklist, prazo_dias').then(({ data }) => {
       const mapa: Record<string, string> = {};
-      for (const s of (data ?? []) as { nome: string; checklist: string | null }[]) if (s.checklist) mapa[s.nome] = s.checklist;
+      const dias: Record<string, number> = {};
+      for (const s of (data ?? []) as { nome: string; checklist: string | null; prazo_dias?: number | null }[]) {
+        if (s.checklist) mapa[s.nome] = s.checklist;
+        if (s.prazo_dias) dias[s.nome] = s.prazo_dias;
+      }
       setChecklists(mapa);
+      setPrazos(dias);
     });
   }, []);
 
   const itens = linhas(checklists[v.servico] || '');
   const faltando = itens.filter((i) => !feitos.includes(i));
   const cliente = clientes.find((c) => c.id === v.cliente_id);
+  const prazoPadrao = prazos[v.servico];
+
+  // Escolheu o serviço: o prazo é calculado sozinho (em dias úteis) se ainda estiver vazio
+  function escolherServico(nome: string) {
+    setV((x) => ({ ...x, servico: nome, prazo: !x.prazo && prazos[nome] ? somarDiasUteis(x.data || hojeISO(), prazos[nome]) : x.prazo }));
+  }
   const valorNum = Number(String(v.valor).replace(/\./g, '').replace(',', '.')) || 0;
 
   function pedirDocumentos() {
@@ -86,18 +102,17 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
         comprovante: caminhoComp,
       };
       const r = inicial?.id
-        ? await supabase().from('atendimentos').update(dados).eq('id', inicial.id)
-        : await supabase().from('atendimentos').insert(dados);
+        ? await supabase().from('atendimentos').update(dados).eq('id', inicial.id).select('codigo').single()
+        : await supabase().from('atendimentos').insert(dados).select('codigo').single();
       if (r.error) throw r.error;
       avisar('Serviço salvo');
 
       // Mudou a situação? Oferece avisar o cliente pelo WhatsApp.
       const mudouStatus = !inicial?.id || inicial.status !== v.status;
-      const texto = cliente?.telefone && mudouStatus
-        ? msgStatus({ nome: cliente.responsavel || cliente.nome, servico: v.servico, status: v.status, valor: brl(valorNum), pago: v.pago, faltando: v.status === 'a_fazer' ? faltando : [] })
-        : '';
-      if (texto) setAviso(texto);
-      else aoSalvar();
+      if (cliente?.telefone && mudouStatus && textoAviso(v.status, (r.data as any)?.codigo ?? '', false, false)) {
+        setSalvo({ codigo: (r.data as any)?.codigo ?? '', status: v.status });
+        setAviso('sim');
+      } else aoSalvar();
     } catch (err: any) {
       avisar(`Erro: ${err.message}. Rodou o atualizacao-15.sql?`, true);
     } finally {
@@ -113,15 +128,37 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
     aoSalvar();
   }
 
-  if (aviso && cliente) {
-    const rotuloStatus = STATUS.find((s) => s.valor === v.status)?.rotulo ?? v.status;
+  // Mensagem do aviso, com link da área do cliente e pedido de avaliação (opcionais)
+  function textoAviso(status: string, codigo: string, area: boolean, avaliacao: boolean) {
+    if (!cliente) return '';
+    const origem = typeof window !== 'undefined' ? window.location.origin : '';
+    const nome = cliente.responsavel || cliente.nome;
+    return msgStatus({
+      nome, servico: v.servico, status, codigo, valor: valorNum > 0 ? brl(valorNum) : '', pago: v.pago,
+      faltando: status === 'a_fazer' || status === 'aguardando_docs' ? faltando : [],
+      prazo: v.prazo ? dataBR(v.prazo) : '',
+      linkArea: area && cliente.acesso_token ? `${origem}/cliente/${cliente.acesso_token}` : '',
+      linkAvaliacao: avaliacao && status === 'concluido' ? `${origem}/avaliar?n=${encodeURIComponent(nome)}${codigo ? `&p=${encodeURIComponent(codigo)}` : ''}` : '',
+    });
+  }
+
+  if (aviso && cliente && salvo) {
+    const rotuloStatus = STATUS.find((s) => s.valor === salvo.status)?.rotulo ?? salvo.status;
+    const texto = textoAviso(salvo.status, salvo.codigo, comArea, comAvaliacao);
+    async function marcarAvaliacao() {
+      if (salvo?.status === 'concluido' && comAvaliacao && cliente) await supabase().from('clientes').update({ avaliacao_pedida_em: new Date().toISOString() }).eq('id', cliente.id);
+    }
     return (
       <div className="adm-item mudou">
         <h3>Avisar {cliente.nome}?</h3>
         <p className="adm-dica" style={{ margin: 0 }}>O serviço mudou para <strong>{rotuloStatus}</strong>. A mensagem já está pronta:</p>
-        <pre className="previa-msg">{aviso}</pre>
         <div className="adm-linha">
-          <a className="adm-btn pri" href={whatsDoTelefone(cliente.telefone, aviso)} target="_blank" rel="noopener noreferrer" onClick={() => setTimeout(aoSalvar, 300)}>Avisar no WhatsApp</a>
+          {cliente.acesso_token && <label className="adm-check"><input type="checkbox" checked={comArea} onChange={(e) => setComArea(e.target.checked)} /> Incluir link da área do cliente</label>}
+          {salvo.status === 'concluido' && <label className="adm-check"><input type="checkbox" checked={comAvaliacao} onChange={(e) => setComAvaliacao(e.target.checked)} /> Pedir avaliação ⭐</label>}
+        </div>
+        <pre className="previa-msg">{texto}</pre>
+        <div className="adm-linha">
+          <a className="adm-btn pri" href={whatsDoTelefone(cliente.telefone, texto)} target="_blank" rel="noopener noreferrer" onClick={() => { marcarAvaliacao(); setTimeout(aoSalvar, 300); }}>Avisar no WhatsApp</a>
           <button className="adm-btn" onClick={aoSalvar}>Agora não</button>
         </div>
       </div>
@@ -154,7 +191,7 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
         </label>
         <label>
           Serviço
-          <input value={v.servico} onChange={(e) => mudar('servico', e.target.value)} list="lista-servicos" required placeholder="Escolha ou digite" />
+          <input value={v.servico} onChange={(e) => escolherServico(e.target.value)} list="lista-servicos" required placeholder="Escolha ou digite" />
           <datalist id="lista-servicos">{servicos.map((s) => <option key={s} value={s} />)}</datalist>
         </label>
         <label>Data<input type="date" value={v.data} onChange={(e) => mudar('data', e.target.value)} required /></label>
@@ -165,7 +202,19 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
             {STATUS.map((s) => <option key={s.valor} value={s.valor}>{s.rotulo}</option>)}
           </select>
         </label>
-        <label>Prazo de entrega (opcional)<input type="date" value={v.prazo || ''} onChange={(e) => mudar('prazo', e.target.value)} /></label>
+        <label>
+          Prazo de entrega (opcional)
+          <input type="date" value={v.prazo || ''} onChange={(e) => mudar('prazo', e.target.value)} />
+          {prazoPadrao && (
+            <span className="adm-dica" style={{ margin: '4px 0 0' }}>
+              Padrão: {prazoPadrao} dia{prazoPadrao > 1 ? 's' : ''} útil{prazoPadrao > 1 ? 'eis' : ''}.{' '}
+              <button type="button" className="link-btn" onClick={() => mudar('prazo', somarDiasUteis(v.data || hojeISO(), prazoPadrao))}>Recalcular</button>
+            </span>
+          )}
+          {v.prazo && !ehDiaUtil(v.prazo) && (
+            <span className="adm-dica" style={{ margin: '4px 0 0', color: '#b3261e' }}>⚠️ {nomeFeriado(v.prazo) || 'Fim de semana'} — não é dia útil.</span>
+          )}
+        </label>
         <label>Nº do processo (opcional)<input value={v.processo} onChange={(e) => mudar('processo', e.target.value)} /></label>
         <label className="adm-check"><input type="checkbox" checked={v.visivel_cliente} onChange={(e) => mudar('visivel_cliente', e.target.checked)} /> Aparece na área do cliente</label>
         <label className="adm-check"><input type="checkbox" checked={v.pago} onChange={(e) => mudar('pago', e.target.checked)} /> Já foi pago</label>
@@ -211,6 +260,7 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
       )}
 
       {inicial?.id && <EnviosPedido pedidoId={inicial.id} avisar={avisar} />}
+      {inicial?.id && <HistoricoPedido pedidoId={inicial.id} />}
       {inicial?.id && <NotasPedido pedidoId={inicial.id} avisar={avisar} />}
       {!inicial?.id && <p className="adm-dica" style={{ margin: 0 }}>Depois de salvar, abra o pedido para adicionar observações internas, texto, ditado ou áudio.</p>}
 

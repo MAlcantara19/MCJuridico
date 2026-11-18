@@ -11,6 +11,7 @@ import type { Config } from '@/lib/tipos';
 import FormAtendimento from './FormAtendimento';
 import { LinhaServico } from './AbaClientes';
 import { useBase } from './useBase';
+import CobrancaLote from './CobrancaLote';
 
 type Aviso = (m: string, e?: boolean) => void;
 
@@ -21,6 +22,7 @@ export default function AbaFinanceiro({ avisar, config }: { avisar: Aviso; confi
   const [periodo, setPeriodo] = useState('mes');
   const [filtro, setFiltro] = useState<'todos' | 'receber' | 'conferir' | 'pagos' | 'abertos'>('todos');
   const [relMensal, setRelMensal] = useState(false);
+  const [lote, setLote] = useState(false);
   const [busca, setBusca] = useState('');
   const [editando, setEditando] = useState<Partial<Atendimento> | null>(null);
   const [despesas, setDespesas] = useState<Despesa[]>([]);
@@ -144,6 +146,7 @@ export default function AbaFinanceiro({ avisar, config }: { avisar: Aviso; confi
         <span className="adm-linha">
           <button className="adm-btn" onClick={exportar} disabled={!doPeriodo.length}>Baixar planilha (Excel)</button>
           <button className="adm-btn" onClick={() => setRelMensal(true)}>Relatório do mês (PDF)</button>
+          <button className="adm-btn" onClick={() => setLote(true)} disabled={!aReceberGeral}>💰 Cobrar inadimplentes</button>
           <button className="adm-btn pri" onClick={() => setEditando({})}>+ Registrar serviço</button>
         </span>
       </div>
@@ -158,6 +161,8 @@ export default function AbaFinanceiro({ avisar, config }: { avisar: Aviso; confi
           </div>
         </div>
       )}
+
+      {lote && <CobrancaLote todos={todos} clientes={clientes} config={config} avisar={avisar} fechar={() => setLote(false)} aoMudar={recarregar} />}
 
       {editando && (
         <FormAtendimento

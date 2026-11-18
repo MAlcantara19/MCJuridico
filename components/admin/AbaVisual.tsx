@@ -44,6 +44,8 @@ export default function AbaVisual({ config, salvar, avisar }: {
     mostrar_nota: config.mostrar_nota !== false,
     logo_url: config.logo_url || '',
     foto_url: config.foto_url || '',
+    assinatura_url: config.assinatura_url || '',
+    mostrar_mapa: config.mostrar_mapa !== false,
   });
   // Garante que seções novas apareçam mesmo em bancos antigos
   const [secoes, setSecoes] = useState<Secao[]>(juntarSecoes(config.secoes));
@@ -51,7 +53,7 @@ export default function AbaVisual({ config, salvar, avisar }: {
 
   function mudar(campo: string, valor: string | boolean) { setV((x) => ({ ...x, [campo]: valor })); }
 
-  async function subirImagem(campo: 'logo_url' | 'foto_url', arquivo?: File) {
+  async function subirImagem(campo: 'logo_url' | 'foto_url' | 'assinatura_url', arquivo?: File) {
     if (!arquivo) return;
     if (arquivo.size > 5 * 1024 * 1024) return avisar('Imagem maior que 5 MB. Reduza antes de enviar.', true);
     try {
@@ -202,6 +204,15 @@ export default function AbaVisual({ config, salvar, avisar }: {
             {v.foto_url && <button className="adm-btn peq perigo" onClick={() => mudar('foto_url', '')}>Remover foto</button>}
           </div>
         </div>
+        <div style={{ display: 'grid', gap: 8, marginTop: 14 }}>
+          <strong style={{ fontSize: '0.85rem' }}>✍️ Assinatura (aparece no recibo, orçamento e relatórios)</strong>
+          {v.assinatura_url && <img src={v.assinatura_url} alt="Assinatura" className="adm-img" style={{ objectFit: 'contain', background: '#fff', height: 70, width: 220 }} />}
+          <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => subirImagem('assinatura_url', e.target.files?.[0])} />
+          {enviando === 'assinatura_url' && <span className="adm-dica">Enviando…</span>}
+          {v.assinatura_url && <button className="adm-btn peq perigo" onClick={() => mudar('assinatura_url', '')}>Remover assinatura</button>}
+          <span className="adm-dica" style={{ margin: 0 }}>Dica: assine com caneta preta numa folha branca, fotografe de perto e recorte. PNG com fundo transparente fica ainda melhor.</span>
+        </div>
+        <label className="adm-check" style={{ marginTop: 12 }}><input type="checkbox" checked={v.mostrar_mapa} onChange={(e) => mudar('mostrar_mapa', e.target.checked)} /> Mostrar o mapa de comarcas atendidas no site</label>
         <p className="adm-dica">Sem logo, aparecem as iniciais. Sem foto, o arco mostra as iniciais.</p>
       </div>
 

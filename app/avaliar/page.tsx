@@ -7,17 +7,19 @@ import FormAvaliacao from '@/components/site/FormAvaliacao';
 export const dynamic = 'force-dynamic';
 export const metadata: Metadata = { title: 'Avalie o atendimento', robots: { index: false, follow: false } };
 
-export default async function Avaliar({ searchParams }: { searchParams: Promise<{ n?: string }> }) {
+export default async function Avaliar({ searchParams }: { searchParams: Promise<{ n?: string; p?: string }> }) {
   const d = await carregarDados();
   if (!d) return null;
-  const { n } = await searchParams;
+  const { n, p } = await searchParams;
+  const pedido = (p || '').replace(/[^\w-]/g, '').slice(0, 20);
   return (
     <PaginaSimples config={d.config} classe="pagina-links">
       <main className="links">
         <p className="links-prof" style={{ marginBottom: 6 }}>{d.config.marca || d.config.nome}</p>
         <h1>Como foi o atendimento?</h1>
+        {pedido && <p className="aval-pedido">Pedido <strong>{pedido}</strong></p>}
         <p style={{ color: 'rgba(255,255,255,.75)', margin: '0 0 28px' }}>Sua opinião ajuda a melhorar o trabalho e outros escritórios a conhecerem o serviço.</p>
-        <FormAvaliacao nomeInicial={(n || '').slice(0, 80)} whatsapp={d.config.whatsapp} />
+        <FormAvaliacao nomeInicial={(n || '').slice(0, 80)} whatsapp={d.config.whatsapp} pedido={pedido} />
       </main>
     </PaginaSimples>
   );

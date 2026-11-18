@@ -273,6 +273,7 @@ export default function AbaRelatorio({ config, avisar, relatorioId, clienteInici
           </>
         )}
         <footer className="rel-assinatura">
+          {config.assinatura_url && <img className="rel-ass-img" src={config.assinatura_url} alt="Assinatura" />}
           <div className="rel-linha" />
           <div>{config.nome}</div>
           <small>{config.aviso_legal}</small>

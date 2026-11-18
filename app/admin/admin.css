@@ -68,6 +68,7 @@
 .rel-fotos figcaption { font-size: 11px; color: #4b5873; margin-top: 4px; }
 .rel-assinatura { margin-top: 48px; text-align: center; break-inside: avoid; }
 .rel-linha { width: 260px; border-top: 1px solid #121a2b; margin: 0 auto 6px; }
+.rel-ass-img { display: block; max-width: 220px; max-height: 80px; margin: 0 auto -8px; object-fit: contain; }
 .rel-assinatura small { display: block; color: #4b5873; margin-top: 10px; font-size: 10px; }
 @media (max-width: 600px) { .relatorio { padding: 20px; } .rel-fotos { grid-template-columns: 1fr; } .rel-topo { flex-direction: column; } .rel-contato { text-align: left; } }
 
@@ -206,3 +207,12 @@
 .rm-cat td { color: #5b6780; font-size: 11px; }
 @media (max-width: 700px) { .rm-cartoes { grid-template-columns: 1fr 1fr; } }
 .tema-noturno .tema-amostra { background: #000; color: var(--b); border: 1px solid var(--a); }
+
+/* ---------- Atualização 16 ---------- */
+.link-btn { background: none; border: 0; padding: 0; color: var(--o, #a8894e); font: inherit; font-weight: 600; cursor: pointer; text-decoration: underline; text-align: left; }
+.historico { list-style: none; margin: 8px 0 0; padding: 0 0 0 14px; border-left: 2px solid var(--l, #d9dee8); display: grid; gap: 8px; }
+.historico li { position: relative; display: grid; gap: 2px; }
+.historico li::before { content: ''; position: absolute; left: -21px; top: 4px; width: 12px; height: 12px; border-radius: 50%; background: var(--cor); box-shadow: 0 0 0 3px var(--s, #fff); }
+.historico strong { color: var(--cor); }
+.prazo-linha { display: grid; gap: 1px; padding: 4px 0 4px 10px; border-left: 4px solid; font-size: 0.9rem; }
+.lote-proximo { display: grid; gap: 8px; padding: 14px; border-radius: 10px; border: 1px dashed var(--o); background: color-mix(in srgb, var(--o) 8%, transparent); }

@@ -42,6 +42,7 @@ export default function Cabecalho({ config: c, secoes }: { config: Config; secoe
             <a key={id} href={`#${id}`} onClick={() => setAberto(false)}>{NOMES_SECOES[id]}</a>
           ))}
           <a href="/escritorios">Para escritórios</a>
+          <a href="/empresas">Para empresas</a>
         </nav>
 
         <div className="cabecalho-acoes">

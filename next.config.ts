@@ -10,7 +10,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com data:",
   "img-src 'self' data: blob: https:",
-  `connect-src 'self' ${supabase} ${supabase.replace('https://', 'wss://')}`,
+  `connect-src 'self' ${supabase} ${supabase.replace('https://', 'wss://')} https://nominatim.openstreetmap.org`,
   `frame-src 'self' blob: ${supabase}`,
   "object-src 'none'",
   "base-uri 'self'",

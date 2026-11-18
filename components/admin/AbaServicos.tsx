@@ -8,6 +8,9 @@ import { ICONES_AREA } from '@/components/site/Icones';
 // Emojis para as mensagens (vazio = automático pelo ícone)
 const EMOJIS = ['', '⚖️', '💼', '💰', '💻', '🏪', '📄', '📂', '🏛️', '📑', '📊', '📅', '🧾', '✍️', '📌'].map((e) => ({ valor: e, rotulo: e || 'Automático (pelo ícone)' }));
 
+// Prazo de entrega preenchido sozinho no pedido (conta só dias úteis, sem feriados)
+const PRAZOS = [{ valor: 0, rotulo: 'Sem prazo padrão' }, ...[1, 2, 3, 4, 5, 7, 10, 15, 20, 30].map((n) => ({ valor: n, rotulo: `${n} dia${n > 1 ? 's' : ''} út${n > 1 ? 'eis' : 'il'}` }))];
+
 type Aviso = (m: string, e?: boolean) => void;
 
 export default function AbaServicos({ avisar }: { avisar: Aviso }) {
@@ -24,7 +27,7 @@ export default function AbaServicos({ avisar }: { avisar: Aviso }) {
     <div style={{ display: 'grid', gap: 28 }}>
       <div>
         <h2>Serviços</h2>
-        <p className="adm-sub">Escolha a área e edite os serviços dela. O preço é texto livre (ex.: “R$ 50/h”, “desde R$ 150/mês”). O checklist aparece no formulário do site e no serviço registrado, para não esquecer nenhum documento.</p>
+        <p className="adm-sub">Escolha a área e edite os serviços dela. O preço é texto livre (ex.: “R$ 50/h”, “desde R$ 150/mês”). O checklist aparece no formulário do site e no serviço registrado, para não esquecer nenhum documento. O prazo padrão preenche sozinho a data de entrega do pedido, contando só dias úteis (sem sábados, domingos e feriados).</p>
         {categorias.length > 0 && (
           <CrudLista
             tabela="servicos"
@@ -37,6 +40,7 @@ export default function AbaServicos({ avisar }: { avisar: Aviso }) {
               { nome: 'preco', rotulo: 'Preço' },
               { nome: 'categoria_id', rotulo: 'Área', tipo: 'select', opcoes: categorias, numero: true },
               { nome: 'ativo', rotulo: 'Aparece no site', tipo: 'bool' },
+              { nome: 'prazo_dias', rotulo: 'Prazo padrão (dias úteis)', tipo: 'select', numero: true, opcoes: PRAZOS },
               { nome: 'checklist', rotulo: 'Checklist de documentos (um por linha)', tipo: 'area' },
             ]}
             recarregar={versao}

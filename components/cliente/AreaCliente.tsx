@@ -8,12 +8,15 @@ import { linhas, linkWhats } from '@/lib/util';
 import { COR_STATUS, STATUS, brl, dataBR, pixDe, rotulo, situacaoPrazo, type Atendimento, type Cliente } from '@/lib/gestao';
 import { estiloMarca } from '@/components/site/PaginaSimples';
 import Recibo from '@/components/admin/gestao/Recibo';
+import BotaoInstalar from '@/components/admin/BotaoInstalar';
+import { CONTATO } from '@/lib/mensagens';
 
 type Pedido = {
   id: number; codigo: string; servico: string; descricao: string; processo: string; status: string;
   data: string; prazo: string | null; valor: number; pago: boolean; data_pagamento: string | null; forma_pagamento: string;
   pagamento_informado: boolean; checklist: string | null; checklist_feito: string[] | null;
   envios: { nome: string; tipo: string; criado_em: string }[];
+  historico?: { status: string; criado_em: string }[];
 };
 type Orcamento = { numero: string; total: number; status: string; criado_em: string; itens: { nome: string; qtd: number; valor: number }[]; validade_dias: number };
 type Dados = { cliente: { nome: string; responsavel: string }; pedidos: Pedido[]; orcamentos: Orcamento[]; horas: { contratadas: number; usadas: number } | null };
@@ -25,6 +28,13 @@ const ETAPAS = [
   { id: 'concluido', rotulo: 'Concluído', status: ['concluido'] },
   { id: 'pago', rotulo: 'Pago', status: [] as string[] },
 ];
+// Data em que o pedido chegou em cada etapa (vem do histórico gravado pelo banco)
+function datasEtapas(p: Pedido) {
+  const h = p.historico ?? [];
+  const primeira = (lista: string[]) => h.find((x) => lista.includes(x.status))?.criado_em;
+  const curta = (d?: string | null) => (d ? new Date(d.length > 10 ? d : `${d}T12:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '');
+  return [curta(h[0]?.criado_em || p.data), curta(primeira(['andamento'])), curta(primeira(['concluido'])), curta(p.pago ? p.data_pagamento : null)];
+}
 function etapaAtual(p: Pedido) {
   if (p.status === 'concluido') return p.pago ? 3 : 2;
   if (p.status === 'andamento') return 1;
@@ -42,6 +52,7 @@ export default function AreaCliente({ token, config }: { token: string; config: 
   const [enviando, setEnviando] = useState<string>('');
   const [recibo, setRecibo] = useState<Pedido | null>(null);
   const [copiado, setCopiado] = useState<number | null>(null);
+  const [lembrar, setLembrar] = useState(false);
 
   async function entrar(codigo: string) {
     setEntrando(true);
@@ -54,17 +65,19 @@ export default function AreaCliente({ token, config }: { token: string; config: 
     }
     if (!data) {
       setErro('Código incorreto. Confira a mensagem que você recebeu no WhatsApp.');
-      try { sessionStorage.removeItem(chavePin); } catch {}
+      try { sessionStorage.removeItem(chavePin); localStorage.removeItem(chavePin); } catch {}
       return;
     }
     setPin(codigo);
     setDados(data as Dados);
     try { sessionStorage.setItem(chavePin, codigo); } catch {}
+    try { if (lembrar) localStorage.setItem(chavePin, codigo); } catch {}
   }
 
   // Lembra o código enquanto a aba estiver aberta
   useEffect(() => {
-    try { const salvo = sessionStorage.getItem(chavePin); if (salvo) entrar(salvo); } catch {}
+    try { const salvo = sessionStorage.getItem(chavePin) || localStorage.getItem(chavePin); if (salvo) entrar(salvo); } catch {}
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js', { scope: `/cliente/${token}` }).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function enviar(p: Pedido, arquivos: FileList | null, tipo: 'documento' | 'comprovante') {
@@ -103,9 +116,10 @@ export default function AreaCliente({ token, config }: { token: string; config: 
           <h1>Área do cliente</h1>
           <p>Digite o código de 4 dígitos que você recebeu no WhatsApp.</p>
           <input name="pin" inputMode="numeric" pattern="[0-9]*" maxLength={6} autoComplete="one-time-code" required aria-label="Código de acesso" className="ac-pin" />
+          <label className="ac-lembrar"><input type="checkbox" checked={lembrar} onChange={(e) => setLembrar(e.target.checked)} /> Lembrar neste celular</label>
           {erro && <p className="ac-erro" role="alert">{erro}</p>}
           <button className="ac-btn" type="submit" disabled={entrando}>{entrando ? 'Entrando…' : 'Entrar'}</button>
-          <a className="ac-link" href={linkWhats(config.whatsapp, 'Olá, Maria Carolina! 👋\nNão estou conseguindo entrar na área do cliente. Pode me ajudar? 😊')} target="_blank" rel="noopener noreferrer">Perdi o código</a>
+          <a className="ac-link" href={linkWhats(config.whatsapp, `Olá, ${CONTATO}! 👋\nNão estou conseguindo entrar na área do cliente. Pode me ajudar? 😊`)} target="_blank" rel="noopener noreferrer">Perdi o código</a>
         </form>
       </div>
     );
@@ -130,6 +144,7 @@ export default function AreaCliente({ token, config }: { token: string; config: 
 
   const Cartao = ({ p }: { p: Pedido }) => {
     const etapa = etapaAtual(p);
+    const datas = datasEtapas(p);
     const itens = linhas(p.checklist || '');
     const feitos = p.checklist_feito ?? [];
     const prazo = situacaoPrazo(p.prazo, p.status === 'concluido');
@@ -150,7 +165,7 @@ export default function AreaCliente({ token, config }: { token: string; config: 
         </header>
 
         <ol className="ac-etapas" aria-label="Etapas do pedido">
-          {ETAPAS.map((e, i) => <li key={e.id} className={i <= etapa ? 'feita' : ''}><span />{e.rotulo}</li>)}
+          {ETAPAS.map((e, i) => <li key={e.id} className={i <= etapa ? 'feita' : ''}><span />{e.rotulo}{i <= etapa && datas[i] && <small>{datas[i]}</small>}</li>)}
         </ol>
 
         <div className="ac-info">
@@ -216,7 +231,10 @@ export default function AreaCliente({ token, config }: { token: string; config: 
             <h1>Olá, {nome}!</h1>
             <p className="ac-sub" style={{ color: 'rgba(255,255,255,.75)' }}>{dados.cliente.nome}</p>
           </div>
-          <a className="ac-btn" href={linkWhats(config.whatsapp, `Olá, Maria Carolina! 👋\nSou ${dados.cliente.nome} e estou na minha área do cliente.\n\nPoderia me ajudar? 😊`)} target="_blank" rel="noopener noreferrer">💬 Falar no WhatsApp</a>
+          <div className="ac-topo-acoes">
+          <BotaoInstalar classe="ac-btn ac-btn-linha" estilo={{}} oQue="esta página" rotulo="📲 Instalar no celular" />
+          <a className="ac-btn" href={linkWhats(config.whatsapp, `Olá, ${CONTATO}! 👋\nSou ${dados.cliente.nome} e estou na minha área do cliente.\n\nPoderia me ajudar? 😊`)} target="_blank" rel="noopener noreferrer">💬 Falar no WhatsApp</a>
+          </div>
         </div>
       </header>
 
@@ -247,7 +265,7 @@ export default function AreaCliente({ token, config }: { token: string; config: 
                 </header>
                 <ul className="ac-envios">{(o.itens ?? []).map((i, k) => <li key={k}>{i.qtd > 1 ? `${i.qtd}x ` : ''}{i.nome} <span>{brl(i.qtd * i.valor)}</span></li>)}</ul>
                 {o.status === 'enviado' && (
-                  <a className="ac-btn" href={linkWhats(config.whatsapp, `Olá, Maria Carolina! 👋\nQuero aprovar o orçamento nº *${o.numero}* (${brl(o.total)}). ✅\n\nComo seguimos? 😊`)} target="_blank" rel="noopener noreferrer">Aprovar pelo WhatsApp</a>
+                  <a className="ac-btn" href={linkWhats(config.whatsapp, `Olá, ${CONTATO}! 👋\nQuero aprovar o orçamento nº *${o.numero}* (${brl(o.total)}). ✅\n\nComo seguimos? 😊`)} target="_blank" rel="noopener noreferrer">Aprovar pelo WhatsApp</a>
                 )}
               </article>
             ))}

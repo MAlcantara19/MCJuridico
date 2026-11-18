@@ -16,6 +16,7 @@ import AbaResumo from './AbaResumo';
 import AbaRelatorio from './AbaRelatorio';
 import AbaArquivos from './AbaArquivos';
 import AbaRespostas from './AbaRespostas';
+import AbaComarcas from './AbaComarcas';
 import FaixaLembrete from './FaixaLembrete';
 import AbaClientes from './gestao/AbaClientes';
 import AbaFinanceiro from './gestao/AbaFinanceiro';
@@ -43,6 +44,7 @@ const ABAS: { id: string; nome: string; soMaster?: boolean; grupo?: boolean }[] 
   { id: 'perguntas', nome: 'Assistente e dúvidas' },
   { id: 'formacoes', nome: 'Formação' },
   { id: 'depoimentos', nome: 'Depoimentos' },
+  { id: 'comarcas', nome: 'Comarcas (mapa)' },
   { id: 'master', nome: 'Master', soMaster: true },
 ];
 
@@ -264,6 +266,7 @@ export default function Painel() {
           )}
           {aba === 'arquivos' && <AbaArquivos avisar={avisar} />}
           {aba === 'depoimentos' && <AbaListas tipo="depoimentos" config={config} salvar={salvarConfig} avisar={avisar} />}
+          {aba === 'comarcas' && <AbaComarcas avisar={avisar} config={config} />}
           {aba === 'visual' && <AbaVisual config={config} salvar={salvarConfig} avisar={avisar} />}
           {aba === 'info' && <AbaInfo config={config} salvar={salvarConfig} />}
           {aba === 'servicos' && <AbaServicos avisar={avisar} />}

@@ -2,6 +2,9 @@
 // Padrão: saudação → contexto → item em *negrito* com emoji → detalhes em tópicos (•) → fechamento.
 // As do site (geral, serviço, pacote, cobrança) também podem ser editadas no painel (Textos e contatos).
 
+// Nome usado nas mensagens do WhatsApp (para outro profissional, troque só aqui)
+export const CONTATO = 'Maria Carolina';
+
 // ---------- Emojis ----------
 // Ícone da área (escolhido no painel) → emoji da mensagem
 const EMOJI_POR_ICONE: Record<string, string> = {
@@ -27,14 +30,14 @@ export function emojiPacote(p: { grupo: string; destaque?: boolean }) {
 
 // ---------- Modelos padrão (os do site podem ser trocados no painel) ----------
 export const MSG_GERAL_PADRAO = [
-  'Olá, Maria Carolina! 👋',
+  `Olá, ${CONTATO}! 👋`,
   'Vim através do seu site e gostaria de saber mais sobre os seus serviços. ⚖️',
   '',
   'Poderia me ajudar? 😊',
 ].join('\n');
 
 export const MSG_SERVICO_PADRAO = [
-  'Olá, Maria Carolina! 👋',
+  `Olá, ${CONTATO}! 👋`,
   'Vim através do seu site e me interessei por este serviço:',
   '',
   '{emoji} *{servico}*',
@@ -45,7 +48,7 @@ export const MSG_SERVICO_PADRAO = [
 ].join('\n');
 
 export const MSG_PACOTE_PADRAO = [
-  'Olá, Maria Carolina! 👋',
+  `Olá, ${CONTATO}! 👋`,
   'Vim através do seu site e me interessei por este pacote:',
   '',
   '{emoji} *{pacote}*',
@@ -91,7 +94,7 @@ const ola = (nome?: string) => `Olá${primeiroNome(nome) ? `, ${primeiroNome(nom
 // ---------- Mensagens do site (cliente → Maria) ----------
 export function msgSolicitacao(p: { nome: string; servico: string; emoji?: string; mensagem: string; contato: string; email?: string }) {
   return juntar(
-    'Olá, Maria Carolina! 👋\nAcabei de enviar uma solicitação pelo seu site. 📝',
+    `Olá, ${CONTATO}! 👋\nAcabei de enviar uma solicitação pelo seu site. 📝`,
     `${p.emoji || '📌'} *${p.servico || 'Serviço a definir'}*`,
     topicos([`Nome: ${p.nome}`, `WhatsApp: ${p.contato}`, p.email && `E-mail: ${p.email}`]),
     `💬 ${p.mensagem}`,
@@ -101,7 +104,7 @@ export function msgSolicitacao(p: { nome: string; servico: string; emoji?: strin
 
 export function msgBuscaSemResultado(termo: string) {
   return juntar(
-    'Olá, Maria Carolina! 👋\nVim através do seu site e procurei por um serviço que não encontrei na tabela:',
+    `Olá, ${CONTATO}! 👋\nVim através do seu site e procurei por um serviço que não encontrei na tabela:`,
     `🔎 *${termo}*`,
     'Você consegue me ajudar com isso? 😊',
   );
@@ -109,7 +112,7 @@ export function msgBuscaSemResultado(termo: string) {
 
 export function msgGuia(p: { perfil: string; local: string; servicos: { nome: string; emoji: string; preco: string }[]; pacote?: string; frequencia: string }) {
   return juntar(
-    'Olá, Maria Carolina! 👋\nFiz o "Qual serviço eu preciso?" no seu site e o resultado foi este:',
+    `Olá, ${CONTATO}! 👋\nFiz o "Qual serviço eu preciso?" no seu site e o resultado foi este:`,
     p.servicos.map((s) => `${s.emoji} *${s.nome}*\n• Valor de referência: ${s.preco}`).join('\n\n'),
     topicos([`Perfil: ${p.perfil}`, `Atendimento: ${p.local}`, `Frequência: ${p.frequencia}`, p.pacote && `Pacote sugerido: ${p.pacote}`]),
     'Poderia confirmar se é isso mesmo e me passar um orçamento? 😊',
@@ -118,7 +121,7 @@ export function msgGuia(p: { perfil: string; local: string; servicos: { nome: st
 
 export function msgSimulador(p: { horas: number; pacote: string; valor: string; economia?: string }) {
   return juntar(
-    'Olá, Maria Carolina! 👋\nUsei o simulador de pacotes do seu site:',
+    `Olá, ${CONTATO}! 👋\nUsei o simulador de pacotes do seu site:`,
     `📦 *${p.pacote}*\n` + topicos([`Horas estimadas: ${p.horas}h por mês`, `Valor: ${p.valor}`, p.economia && `Economia em relação à hora avulsa: ${p.economia}`]),
     'Poderia me explicar como funciona a contratação? 😊',
   );
@@ -136,7 +139,7 @@ export function msgCredito(marca: string, nome: string) {
 export function msgRespostaSolicitacao(nome: string, servico: string) {
   return juntar(
     ola(nome),
-    'Aqui é a Maria Carolina. Recebi sua solicitação pelo site. ✅',
+    `Aqui é a ${CONTATO}. Recebi sua solicitação pelo site. ✅`,
     servico && `📌 *${servico}*`,
     'Vou analisar e já te retorno com as informações. Qualquer dúvida, é só me chamar por aqui! 😊',
   );
@@ -193,8 +196,9 @@ export function msgRecibo(p: { nome: string; numero: string; servico: string; va
 }
 
 // Aviso automático quando a situação de um serviço muda
-export function msgStatus(p: { nome: string; servico: string; status: string; valor?: string; pago?: boolean; faltando?: string[] }) {
+export function msgStatus(p: { nome: string; servico: string; status: string; valor?: string; pago?: boolean; faltando?: string[]; codigo?: string; prazo?: string; linkArea?: string; linkAvaliacao?: string }) {
   const corpo: Record<string, string> = {
+    aguardando_docs: 'Para dar andamento ao seu pedido, estou *aguardando alguns documentos*. 📂',
     a_fazer: 'Recebi seu pedido e ele já está na minha fila de trabalho. ✅',
     andamento: 'Seu serviço está *em andamento*. ⏳ Assim que concluir, te aviso por aqui.',
     concluido: 'Seu serviço foi *concluído*! ✅',
@@ -204,9 +208,12 @@ export function msgStatus(p: { nome: string; servico: string; status: string; va
   return juntar(
     ola(p.nome),
     corpo[p.status],
-    `📌 *${p.servico}*`,
+    `📌 *${p.servico}*${p.codigo ? ` (${p.codigo})` : ''}`,
+    !!p.prazo && p.status !== 'concluido' && `📅 Previsão de entrega: *${p.prazo}*`,
     p.status === 'concluido' && p.valor && !p.pago && `💰 Valor: *${p.valor}*\nPode fazer o pagamento por Pix. Se precisar dos dados, é só me pedir. 🙏`,
     !!p.faltando?.length && `Para agilizar, preciso que me envie:\n${p.faltando.map((d) => `☐ ${d}`).join('\n')}`,
+    !!p.linkArea && `🔐 Acompanhe tudo pela sua área (o código de acesso é o mesmo de sempre):\n${p.linkArea}`,
+    !!p.linkAvaliacao && `⭐ Se puder, conte como foi o atendimento (leva 1 minuto):\n${p.linkAvaliacao}`,
     'Qualquer dúvida, estou à disposição! 😊',
   );
 }
@@ -227,9 +234,32 @@ export function msgSoPix(pix: string) {
   return pix;
 }
 
+// Cobrança em lote: todos os pedidos em aberto do cliente numa mensagem só
+export function msgCobrancaLote(p: { nome: string; itens: { codigo?: string | null; servico: string; data: string; valor: string }[]; total: string; pix?: string; linkArea?: string }) {
+  return juntar(
+    ola(p.nome),
+    'Tudo bem? Passando para lembrar, com carinho, dos serviços que ficaram em aberto: 🙏',
+    p.itens.map((i) => `📌 *${i.servico}*${i.codigo ? ` (${i.codigo})` : ''}\n• Concluído em ${i.data} · ${i.valor}`).join('\n\n'),
+    `💰 *Total: ${p.total}*`,
+    !!p.pix && `💠 *Pix copia e cola* (já com o valor):\n${p.pix}`,
+    !!p.linkArea && `🔐 Se preferir, envie o comprovante pela sua área:\n${p.linkArea}`,
+    'Se já tiver pago, me desconsidere e me mande o comprovante, por favor. Obrigada! 😊',
+  );
+}
+
+// Pedido feito pelo mapa de comarcas
+export function msgComarca(p: { comarca: string; uf?: string; tipo?: string }) {
+  return juntar(
+    `Olá, ${CONTATO}! 👋\nVi o mapa de comarcas no seu site e preciso de um serviço presencial. ⚖️`,
+    `📍 *Comarca: ${p.comarca}${p.uf ? ` - ${p.uf}` : ''}*`,
+    topicos(['Serviço: ', 'Nº do processo: ', 'Prazo: ']),
+    p.tipo === 'consulta' ? 'Sei que essa comarca é sob consulta. Pode verificar disponibilidade e valores? 😊' : 'Pode me passar disponibilidade e valores? 😊',
+  );
+}
+
 export function msgEscritorio(p: { cidade?: string; servico?: string }) {
   return juntar(
-    'Olá, Maria Carolina! 👋\nSou de um escritório de advocacia e vim pela sua página para escritórios. ⚖️',
+    `Olá, ${CONTATO}! 👋\nSou de um escritório de advocacia e vim pela sua página para escritórios. ⚖️`,
     `💼 *${p.servico || 'Correspondente jurídica'}*`,
     topicos([p.cidade && `Comarca: ${p.cidade}`]),
     'Poderia me passar disponibilidade e valores? 😊',

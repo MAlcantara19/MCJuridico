@@ -5,7 +5,20 @@ import AreaCliente from '@/components/cliente/AreaCliente';
 import '../../admin/admin.css';
 
 export const dynamic = 'force-dynamic';
-export const metadata: Metadata = { title: 'Área do cliente', robots: { index: false, follow: false } };
+export async function generateMetadata({ params }: { params: Promise<{ token: string }> }): Promise<Metadata> {
+  const { token } = await params;
+  const d = await carregarDados();
+  const marca = d?.config.marca || 'MC Jurídico';
+  const valido = /^[\w-]{16,80}$/.test(token);
+  return {
+    title: `Meus pedidos · ${marca}`,
+    robots: { index: false, follow: false },
+    referrer: 'no-referrer',
+    ...(valido ? { manifest: `/cliente/${token}/app.webmanifest` } : {}),
+    icons: { apple: d?.config.logo_url || '/apple-touch-icon.png' },
+    appleWebApp: { capable: true, title: marca, statusBarStyle: 'black-translucent' },
+  };
+}
 
 export default async function Pagina({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;

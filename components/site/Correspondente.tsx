@@ -6,6 +6,7 @@ import { MSG_PACOTE_PADRAO, emojiArea, emojiPacote, preencher } from '@/lib/mens
 import { registrar } from '@/lib/estatisticas';
 import { ListaPrecos } from './Servicos';
 import { IconeArea } from './Icones';
+import MapaComarcas from './MapaComarcas';
 
 export default function Correspondente({ dados }: { dados: Dados }) {
   const c = dados.config;
@@ -59,6 +60,13 @@ export default function Correspondente({ dados }: { dados: Dados }) {
             </aside>
           )}
         </div>
+
+        {c.mostrar_mapa !== false && !!dados.comarcas?.length && (
+          <div style={{ marginTop: 64 }}>
+            <h3 className="titulo-area">📍 Comarcas atendidas</h3>
+            <MapaComarcas comarcas={dados.comarcas} config={c} titulo={false} />
+          </div>
+        )}
       </div>
     </section>
   );

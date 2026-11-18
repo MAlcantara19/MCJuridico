@@ -636,3 +636,68 @@ a.selo-seg:hover { border-color: var(--ouro); color: #fff; }
 .esc-motivo > span { font-size: 1.8rem; }
 .esc-motivo h3 { margin: 8px 0 6px; color: var(--titulo); font-size: 1.05rem; }
 .esc-motivo p { margin: 0; color: var(--suave); }
+
+/* ---------- Mapa de comarcas (atualização 16) ---------- */
+.mapa-grade { display: grid; grid-template-columns: 1fr 300px; gap: 24px; align-items: stretch; }
+.mapa-moldura { position: relative; border: 1px solid var(--linha); border-radius: 14px; overflow: hidden; min-height: 440px; background: var(--sup); box-shadow: 0 18px 50px -30px rgba(14, 27, 51, 0.45); }
+.mapa { position: absolute; inset: 0; z-index: 0; background: var(--sup); font-family: inherit; }
+.mapa-dica { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 500; background: color-mix(in srgb, var(--navy) 88%, transparent); color: #fff; font-size: 0.8rem; padding: 6px 12px; border-radius: 999px; pointer-events: none; white-space: nowrap; }
+.mapa-tiles { filter: grayscale(1) sepia(0.12) contrast(0.92) brightness(1.04); }
+:root[data-tema='escuro'] .mapa-tiles { filter: invert(1) hue-rotate(185deg) grayscale(0.7) brightness(0.78) contrast(1.1); }
+@media (prefers-color-scheme: dark) { :root:not([data-tema='claro']) .mapa-tiles { filter: invert(1) hue-rotate(185deg) grayscale(0.7) brightness(0.78) contrast(1.1); } }
+.mapa-linha { stroke: var(--ouro); stroke-width: 2; stroke-dasharray: 5 7; stroke-linecap: round; fill: none; opacity: 0.85; }
+.mapa-linha-consulta { stroke: var(--suave); opacity: 0.55; }
+.mapa-pino { display: grid; place-items: center; width: 100%; height: 100%; border-radius: 50%; position: relative; }
+.mapa-pino > span { width: 100%; height: 100%; border-radius: 50%; display: block; }
+.mapa-pino-base > span { background: var(--navy); border: 3px solid var(--ouro); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); }
+.mapa-pino-base::after { content: ''; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid var(--ouro); animation: mapa-pulso 2.2s ease-out infinite; }
+.mapa-pino-deslocamento > span { background: var(--ouro); border: 3px solid #fff; box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3); }
+.mapa-pino-consulta > span { background: #fff; border: 3px solid var(--suave); box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25); }
+.mapa-pino.mini { display: inline-grid; width: 12px; height: 12px; vertical-align: -1px; }
+.mapa-pino.mini > span { border-width: 2px; }
+.mapa-pino-base.mini::after { display: none; }
+@keyframes mapa-pulso { 0% { transform: scale(0.7); opacity: 1; } 100% { transform: scale(1.9); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .mapa-pino-base::after { animation: none; } }
+.mapa .leaflet-popup-content-wrapper { border-radius: 12px; background: var(--cartao); color: var(--texto); box-shadow: 0 12px 34px rgba(0, 0, 0, 0.25); }
+.mapa .leaflet-popup-tip { background: var(--cartao); }
+.mapa .leaflet-popup-content { margin: 14px 16px; font-size: 0.9rem; line-height: 1.45; }
+.mapa a.leaflet-popup-close-button { color: var(--suave); }
+.mapa-popup { display: grid; gap: 4px; }
+.mapa-popup strong { font-family: var(--fonte-titulo); font-size: 1.25rem; color: var(--titulo); line-height: 1.1; }
+.mapa-km { color: var(--ouro-texto); font-weight: 600; font-size: 0.82rem; }
+.mapa-etq { justify-self: start; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--sup); color: var(--suave); }
+.mapa-etq-base { background: var(--navy); color: #fff; }
+.mapa-etq-deslocamento { background: color-mix(in srgb, var(--ouro) 22%, transparent); color: var(--ouro-texto); }
+.mapa .mapa-zap, .mapa .mapa-zap:hover { margin-top: 8px; display: inline-flex; justify-content: center; padding: 8px 12px; border-radius: 8px; background: #1f8f4e; color: #fff; text-decoration: none; font-weight: 600; font-size: 0.85rem; }
+.mapa-lista { display: grid; gap: 18px; align-content: start; }
+.mapa-lista h3 { margin: 0; font-size: 0.95rem; color: var(--titulo); display: flex; align-items: center; gap: 8px; }
+.mapa-dica-tipo { margin: 2px 0 6px; font-size: 0.82rem; color: var(--suave); }
+.mapa-lista ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.mapa-lista button { width: 100%; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; background: none; border: 1px solid transparent; border-radius: 8px; padding: 7px 10px; color: var(--texto); font: inherit; cursor: pointer; text-align: left; }
+.mapa-lista button:hover, .mapa-lista button.ativa { border-color: var(--linha); background: var(--cartao); }
+.mapa-lista button.ativa { border-color: var(--ouro); }
+.mapa-lista small { color: var(--suave); white-space: nowrap; }
+.mapa-rodape { margin: 0; font-size: 0.85rem; color: var(--suave); }
+.mapa-rodape a { color: var(--ouro-texto); font-weight: 600; }
+@media (max-width: 860px) {
+  .mapa-grade { grid-template-columns: 1fr; }
+  .mapa-moldura { min-height: 360px; }
+  .mapa-lista { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+}
+
+/* Avaliação ligada ao pedido + pesquisa rápida */
+.aval-pedido { margin: 6px 0 20px; color: rgba(255, 255, 255, 0.7); font-size: 0.9rem; }
+.aval-pedido strong { color: var(--ouro); letter-spacing: 0.04em; }
+.aval-pontos { border: 0; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.aval-pontos legend { font-size: 0.85rem; font-weight: 600; color: rgba(255, 255, 255, 0.85); margin-bottom: 8px; }
+.aval-pontos legend small { font-weight: 400; opacity: 0.7; }
+.aval-pontos button { font: inherit; font-size: 0.85rem; padding: 8px 14px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.3); background: transparent; color: #fff; cursor: pointer; min-height: 40px; }
+.aval-pontos button.marcado { background: var(--ouro); border-color: var(--ouro); color: #0e1b33; font-weight: 600; }
+
+/* Área do cliente: instalar e datas das etapas */
+.ac-topo-acoes { display: flex; flex-wrap: wrap; gap: 8px; }
+.ac-topo .ac-btn.ac-btn-linha { background: transparent; color: #fff; border-color: rgba(255, 255, 255, 0.35); }
+.ac-topo .ac-btn.ac-btn-linha:hover { border-color: var(--ouro); }
+.ac-lembrar { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem; color: #4b5873; }
+.ac-lembrar input { width: 18px; height: 18px; accent-color: var(--navy); }
+.ac-etapas small { font-size: 0.7rem; color: #4b5873; font-weight: 600; margin-top: -4px; }

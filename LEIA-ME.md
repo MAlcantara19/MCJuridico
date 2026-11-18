@@ -127,6 +127,19 @@ Rode `supabase/atualizacao-15.sql` e depois `npm install` (Next.js 16.4.6, que c
 - Página /escritorios para advogados de outras cidades
 - WhatsApp: no computador abre pelo WhatsApp Web (mantém os emojis); no celular, pelo app
 
+## Atualização 16
+
+Rode `supabase/atualizacao-16.sql` e depois `npm install` (entrou o pacote do mapa, Leaflet).
+- **Mapa de comarcas** no site (Correspondente e /escritorios): base em destaque, distância, pedido direto no WhatsApp. Edite em Site › Comarcas (mapa)
+- Prazo automático por serviço, contando só **dias úteis** (sem fins de semana e feriados nacionais + RJ)
+- Aviso de etapa ao cliente com link da área dele e pedido de avaliação (com o código do pedido)
+- **Histórico do pedido** (quem mudou a etapa e quando) e datas na linha do tempo da área do cliente
+- Área do cliente **instalável** no celular e opção "Lembrar neste celular"
+- Assinatura (imagem) no recibo, orçamento e relatórios (Visual e layout › Logo e foto)
+- Painel do mês no Resumo: pedidos por etapa, prazos dos próximos 5 dias úteis e satisfação
+- **Cobrar inadimplentes** em lote (Financeiro), uma mensagem por cliente com o Pix do total
+- Página **/empresas** · pesquisa rápida de satisfação · modelo genérico para vender o site
+
 ## Onde mexer
 
 - Pelo painel `/admin` (sem código): textos, marca, cores, fonte, tema, logo, foto,

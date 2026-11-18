@@ -102,6 +102,7 @@ export default function RelatorioMensal({ todos, despesas, clientes, config, fec
         </table>
 
         <footer className="rel-assinatura">
+          {config.assinatura_url && <img className="rel-ass-img" src={config.assinatura_url} alt="Assinatura" />}
           <div className="rel-linha" />
           <div>{config.nome}</div>
           <small>Relatório gerencial para controle interno.</small>

@@ -3,10 +3,11 @@
 import { useRef, useState, type FormEvent } from 'react';
 import type { Config } from '@/lib/tipos';
 import { linkWhats } from '@/lib/util';
+import { CONTATO } from '@/lib/mensagens';
 import { supabase } from '@/lib/supabase';
 import { registrar } from '@/lib/estatisticas';
 
-export default function FormEscritorio({ config: c, servicos, pacote }: { config: Config; servicos: string[]; pacote?: string }) {
+export default function FormEscritorio({ config: c, servicos, pacote, comarcas = ['Três Rios/RJ', 'Paraíba do Sul/RJ'] }: { config: Config; servicos: string[]; pacote?: string; comarcas?: string[] }) {
   const [enviado, setEnviado] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const abertoEm = useRef(Date.now());
@@ -31,7 +32,7 @@ export default function FormEscritorio({ config: c, servicos, pacote }: { config
     setEnviado(true);
     registrar('whatsapp', false, 'Página para escritórios');
     const texto = [
-      'Olá, Maria Carolina! 👋',
+      `Olá, ${CONTATO}! 👋`,
       'Sou de um escritório de advocacia e vim pela sua página para escritórios. ⚖️',
       '',
       `💼 *${servico}*`,
@@ -67,8 +68,8 @@ export default function FormEscritorio({ config: c, servicos, pacote }: { config
           <option>Outra diligência</option>
         </select>
       </label>
-      <label>Comarca<input name="comarca" required list="comarcas" placeholder="Ex.: Três Rios/RJ" /></label>
-      <datalist id="comarcas"><option value="Três Rios/RJ" /><option value="Paraíba do Sul/RJ" /></datalist>
+      <label>Comarca<input name="comarca" required list="lista-comarcas" placeholder="Ex.: Três Rios/RJ" /></label>
+      <datalist id="lista-comarcas">{comarcas.map((x) => <option key={x} value={x} />)}</datalist>
       <label>Nº do processo (opcional)<input name="processo" placeholder="0000000-00.0000.8.19.0000" /></label>
       <label>Prazo (opcional)<input name="prazo" type="date" /></label>
       <label className="inteiro">Detalhes<textarea name="detalhes" placeholder="O que precisa ser feito, vara, documentos que vão ser enviados…" /></label>

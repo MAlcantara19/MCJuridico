@@ -58,6 +58,7 @@ export default function Recibo({ atendimento: a, cliente, config, fechar, public
         </table>
         <p className="recibo-texto" style={{ marginTop: 28 }}>Para clareza, firmo o presente recibo, dando plena quitação do valor acima.</p>
         <footer className="rel-assinatura">
+          {config.assinatura_url && <img className="rel-ass-img" src={config.assinatura_url} alt="Assinatura" />}
           <div className="rel-linha" />
           <div>{config.nome}</div>
           <small>{dataPag}</small>

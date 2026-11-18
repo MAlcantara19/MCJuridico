@@ -190,6 +190,7 @@ export default function Orcamento({ cliente, config, avisar, fechar }: { cliente
           </div>
         )}
         <footer className="rel-assinatura">
+          {config.assinatura_url && <img className="rel-ass-img" src={config.assinatura_url} alt="Assinatura" />}
           <div className="rel-linha" />
           <div>{config.nome}</div>
           <small>{config.aviso_legal}</small>

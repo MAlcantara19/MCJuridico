@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { Config, Pergunta } from '@/lib/tipos';
 import { linkWhats, normalizar } from '@/lib/util';
-import { MSG_GERAL_PADRAO } from '@/lib/mensagens';
+import { CONTATO, MSG_GERAL_PADRAO } from '@/lib/mensagens';
 import { IconeAjuda, IconeEnviar, IconeFechar, IconeWhats } from './Icones';
 import { registrar } from '@/lib/estatisticas';
 
@@ -43,7 +43,7 @@ export default function Assistente({ config: c, perguntas }: { config: Config; p
   function perguntar(pergunta: string, resposta?: string) {
     const achada = resposta ? null : responder(pergunta, perguntas);
     const r = resposta ?? achada?.resposta ??
-      'Não encontrei essa resposta por aqui. Toque no botão verde abaixo e fale direto com a Maria Carolina pelo WhatsApp.';
+      `Não encontrei essa resposta por aqui. Toque no botão verde abaixo e fale direto com a ${CONTATO} pelo WhatsApp.`;
     setMsgs((m) => [...m, { de: 'eu', texto: pergunta }, { de: 'bot', texto: r }]);
   }
 

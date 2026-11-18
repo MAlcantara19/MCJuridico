@@ -14,6 +14,7 @@ import TabelaClientes from './TabelaClientes';
 import { AcessoCliente, Etiquetas, HorasCliente } from './ExtrasCliente';
 import type { Config } from '@/lib/tipos';
 import { useBase } from './useBase';
+import { CONTATO } from '@/lib/mensagens';
 
 type Aviso = (m: string, e?: boolean) => void;
 
@@ -215,7 +216,7 @@ function FichaCliente({ id, config, navegar, clientes, servicos, avisar, voltar,
       <div className="adm-linha" style={{ justifyContent: 'space-between' }}>
         <button className="adm-btn peq" onClick={voltar}>← Clientes</button>
         {id && v.telefone && (
-          <a className="adm-btn peq" href={whatsDoTelefone(v.telefone, `Olá${v.responsavel ? `, ${v.responsavel.split(' ')[0]}` : ''}! 👋\nAqui é a Maria Carolina. Tudo bem? 😊`)} target="_blank" rel="noopener noreferrer">WhatsApp</a>
+          <a className="adm-btn peq" href={whatsDoTelefone(v.telefone, `Olá${v.responsavel ? `, ${v.responsavel.split(' ')[0]}` : ''}! 👋\nAqui é a ${CONTATO}. Tudo bem? 😊`)} target="_blank" rel="noopener noreferrer">WhatsApp</a>
         )}
       </div>
       <h2 style={{ margin: 0 }}>{id ? v.nome || 'Cliente' : 'Novo cliente'}</h2>

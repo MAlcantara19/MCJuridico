@@ -2,6 +2,7 @@
 // Visão rápida: visitas, cliques no WhatsApp, assistente e solicitações (últimos 30 dias).
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
+import PainelMes from './PainelMes';
 import { brl, dataBR, hojeISO, intervalo, somarDias, type Atendimento, type Compromisso } from '@/lib/gestao';
 
 type Numeros = { visita: number; whatsapp: number; assistente: number; novas: number; total: number };
@@ -86,6 +87,9 @@ export default function AbaResumo({ nome, irPara }: { nome: string; irPara: (aba
           <span className="adm-dica" style={{ margin: 0, color: mes?.aReceber ? '#b3261e' : undefined }}>{brl(mes?.aReceber ?? 0)} a receber no total</span>
         </div>
       </div>
+
+      <h3 style={{ margin: '8px 0 -6px' }}>Painel do mês</h3>
+      <PainelMes irPara={irPara} />
 
       <h3 style={{ margin: '8px 0 -6px' }}>Site (últimos 30 dias)</h3>
       {!n && <p className="adm-sub">Carregando…</p>}

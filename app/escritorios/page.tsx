@@ -7,6 +7,7 @@ import { emojiArea } from '@/lib/mensagens';
 import PaginaSimples from '@/components/site/PaginaSimples';
 import FormEscritorio from '@/components/site/FormEscritorio';
 import { ListaPrecos } from '@/components/site/Servicos';
+import MapaComarcas from '@/components/site/MapaComarcas';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,6 +57,7 @@ export default async function Escritorios() {
           <div className="topo-acoes">
             <a className="btn btn-ouro" href="#pedir">Pedir uma diligência</a>
             <a className="btn btn-linha" href="#valores">Ver valores</a>
+            {!!d.comarcas?.length && c.mostrar_mapa !== false && <a className="btn btn-linha" href="#comarcas">Ver comarcas no mapa</a>}
           </div>
           <ul className="topo-fatos">
             {linhas(c.area_atendimento).map((a) => <li key={a}>{a}</li>)}
@@ -108,7 +110,15 @@ export default async function Escritorios() {
         </div>
       </section>
 
-      <section className="secao">
+      {!!d.comarcas?.length && c.mostrar_mapa !== false && (
+        <section id="comarcas" className="secao">
+          <div className="conteiner">
+            <MapaComarcas comarcas={d.comarcas} config={c} />
+          </div>
+        </section>
+      )}
+
+      <section className="secao secao-sup">
         <div className="conteiner">
           <div className="secao-cabeca">
             <hr className="filete" />
@@ -120,14 +130,14 @@ export default async function Escritorios() {
         </div>
       </section>
 
-      <section id="pedir" className="secao secao-sup">
+      <section id="pedir" className="secao">
         <div className="conteiner">
           <div className="secao-cabeca">
             <hr className="filete" />
             <h2>Pedir uma diligência</h2>
             <p>Preencha e a mensagem já abre no WhatsApp, organizada para eu responder rápido.</p>
           </div>
-          <FormEscritorio config={c} servicos={servicos.filter((s) => !/inclus/i.test(s.preco)).map((s) => s.nome)} pacote={pacote?.nome} />
+          <FormEscritorio config={c} servicos={servicos.filter((s) => !/inclus/i.test(s.preco)).map((s) => s.nome)} pacote={pacote?.nome} comarcas={d.comarcas?.length ? d.comarcas.map((x) => `${x.nome}/${x.uf || 'RJ'}`) : undefined} />
         </div>
       </section>
 

@@ -91,10 +91,12 @@ export default function AbaListas({ tipo, config, salvar, avisar }: Props) {
             { nome: 'nome', rotulo: 'Nome' },
             { nome: 'cargo', rotulo: 'Cargo / cidade', },
             { nome: 'nota', rotulo: 'Estrelas', tipo: 'select', numero: true, opcoes: [5, 4, 3, 2, 1].map((n) => ({ valor: n, rotulo: '★'.repeat(n) })) },
+            { nome: 'pedido', rotulo: 'Pedido avaliado (ex.: MC-0012)' },
             { nome: 'autoriza', rotulo: 'Cliente autorizou publicar', tipo: 'bool' },
             { nome: 'ativo', rotulo: 'Aparece no site', tipo: 'bool' },
             { nome: 'texto', rotulo: 'Depoimento', tipo: 'area' },
           ]}
+          extra={(item) => (item.pontos?.length ? <p className="adm-dica" style={{ margin: 0 }}>Pesquisa rápida: {item.pontos.join(' · ')}</p> : null)}
         />
       </div>
     );

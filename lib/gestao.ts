@@ -17,6 +17,7 @@ export type Cliente = {
   avaliacao_pedida_em?: string | null;
   etiquetas?: string[] | null; horas_mes?: number | null; mostrar_horas?: boolean | null;
   acesso_token?: string | null; acesso_pin?: string | null;
+  cobrado_em?: string | null;
 };
 
 // Etiquetas sugeridas (dá para criar outras) e suas cores
@@ -35,14 +36,57 @@ export const COR_STATUS: Record<string, string> = {
   orcamento: '#6a3fb5', aguardando_docs: '#e08a00', a_fazer: '#1d4f91', andamento: '#00796b', concluido: '#2e7d32', cancelado: '#5b6780',
 };
 
-// Prazo: atrasado (vermelho), até 3 dias (laranja), ok (verde)
+// ---------- Dias úteis (sem sábado, domingo e feriados nacionais + RJ) ----------
+function pascoa(ano: number) {
+  const a = ano % 19, b = Math.floor(ano / 100), c = ano % 100, d = Math.floor(b / 4), e = b % 4;
+  const f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const mes = Math.floor((h + l - 7 * m + 114) / 31), dia = ((h + l - 7 * m + 114) % 31) + 1;
+  return `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
+}
+const cacheFeriados: Record<number, Record<string, string>> = {};
+export function feriados(ano: number) {
+  if (cacheFeriados[ano]) return cacheFeriados[ano];
+  const p = pascoa(ano);
+  const f: Record<string, string> = {
+    [`${ano}-01-01`]: 'Confraternização Universal', [`${ano}-04-21`]: 'Tiradentes', [`${ano}-04-23`]: 'São Jorge (RJ)',
+    [`${ano}-05-01`]: 'Dia do Trabalho', [`${ano}-09-07`]: 'Independência', [`${ano}-10-12`]: 'Nossa Senhora Aparecida',
+    [`${ano}-11-02`]: 'Finados', [`${ano}-11-15`]: 'Proclamação da República', [`${ano}-11-20`]: 'Consciência Negra',
+    [`${ano}-12-25`]: 'Natal',
+    [somarDias(p, -48)]: 'Carnaval', [somarDias(p, -47)]: 'Carnaval', [somarDias(p, -2)]: 'Sexta-feira Santa',
+    [somarDias(p, 60)]: 'Corpus Christi',
+  };
+  return (cacheFeriados[ano] = f);
+}
+export const nomeFeriado = (d: string) => feriados(Number(d.slice(0, 4)))[d] ?? '';
+export function ehDiaUtil(d: string) {
+  const s = new Date(`${d}T12:00:00`).getDay();
+  return s !== 0 && s !== 6 && !nomeFeriado(d);
+}
+// Soma N dias úteis a partir de uma data (o dia de hoje não conta)
+export function somarDiasUteis(d: string, n: number) {
+  let r = d, faltam = n;
+  while (faltam > 0) { r = somarDias(r, 1); if (ehDiaUtil(r)) faltam -= 1; }
+  return r;
+}
+// Quantos dias úteis entre duas datas (negativo se 'ate' já passou)
+export function diasUteisEntre(de: string, ate: string) {
+  if (de === ate) return 0;
+  const sinal = ate > de ? 1 : -1;
+  let n = 0, d = de;
+  while (d !== ate) { d = somarDias(d, sinal); if (ehDiaUtil(d)) n += sinal; }
+  return n;
+}
+
+// Prazo: atrasado (vermelho), até 2 dias úteis (laranja), ok (verde)
 export function situacaoPrazo(prazo?: string | null, feito?: boolean) {
   if (!prazo || feito) return { cor: '#5b6780', rotulo: prazo ? dataBR(prazo) : '—', nivel: 0 };
-  const dias = Math.round((new Date(`${prazo}T12:00:00`).getTime() - new Date(`${hojeISO()}T12:00:00`).getTime()) / 864e5);
-  if (dias < 0) return { cor: '#b3261e', rotulo: `${dataBR(prazo)} · atrasado ${-dias}d`, nivel: 3 };
-  if (dias === 0) return { cor: '#b3261e', rotulo: `${dataBR(prazo)} · hoje`, nivel: 3 };
-  if (dias <= 3) return { cor: '#e08a00', rotulo: `${dataBR(prazo)} · em ${dias}d`, nivel: 2 };
-  return { cor: '#2e7d32', rotulo: `${dataBR(prazo)} · em ${dias}d`, nivel: 1 };
+  const hoje = hojeISO();
+  if (prazo < hoje) return { cor: '#b3261e', rotulo: `${dataBR(prazo)} · atrasado ${Math.max(1, -diasUteisEntre(hoje, prazo))} d.u.`, nivel: 3 };
+  if (prazo === hoje) return { cor: '#b3261e', rotulo: `${dataBR(prazo)} · hoje`, nivel: 3 };
+  const du = diasUteisEntre(hoje, prazo);
+  if (du <= 2) return { cor: '#e08a00', rotulo: `${dataBR(prazo)} · em ${du} d.u.`, nivel: 2 };
+  return { cor: '#2e7d32', rotulo: `${dataBR(prazo)} · em ${du} d.u.`, nivel: 1 };
 }
 
 export type Atendimento = {

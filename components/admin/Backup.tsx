@@ -7,11 +7,24 @@ import { supabase } from '@/lib/supabase';
 const TABELAS = [
   'configuracoes', 'categorias', 'servicos', 'pacotes', 'formacoes', 'documentos', 'perguntas', 'depoimentos',
   'solicitacoes', 'clientes', 'atendimentos', 'agenda', 'relatorios', 'orcamentos', 'despesas', 'respostas',
-  'arquivos_privados', 'notas_pedido', 'horas', 'envios', 'perfis',
+  'arquivos_privados', 'notas_pedido', 'horas', 'envios', 'comarcas', 'historico_pedido', 'perfis',
 ];
 
 // Só a "cara" do site, sem dados de clientes: serve de modelo para montar o site de outro profissional
-const MODELO = ['configuracoes', 'categorias', 'servicos', 'pacotes', 'perguntas', 'respostas'];
+const MODELO = ['configuracoes', 'categorias', 'servicos', 'pacotes', 'perguntas', 'respostas', 'comarcas'];
+
+// Modelo "limpo" para vender a outros profissionais: troca nome, marca, contatos, Pix e imagens por campos a preencher
+const LIMPAR_CONFIG: Record<string, string> = {
+  nome: 'Seu Nome', marca: 'Sua Marca', whatsapp: '5500000000000', whatsapp_exibicao: '(00) 00000-0000',
+  instagram: '', email: '', pix_chave: '', pix_nome: '', pix_cidade: '', logo_url: '', foto_url: '', assinatura_url: '',
+  area_atendimento: 'Sua cidade/UF', rodape_credito: '',
+};
+function limparTextos(valor: unknown, trocas: [string, string][]): unknown {
+  if (typeof valor === 'string') return trocas.reduce((t, [de, para]) => (de ? t.split(de).join(para) : t), valor);
+  if (Array.isArray(valor)) return valor.map((v) => limparTextos(v, trocas));
+  if (valor && typeof valor === 'object') return Object.fromEntries(Object.entries(valor).map(([k, v]) => [k, limparTextos(v, trocas)]));
+  return valor;
+}
 // O que a restauração completa repõe (os acessos ao painel nunca são trocados)
 const RESTAURAVEIS = TABELAS.filter((t) => t !== 'perfis');
 
@@ -23,7 +36,7 @@ export default function Backup({ avisar }: { avisar: (m: string, e?: boolean) =>
 
   const [restaurando, setRestaurando] = useState(false);
 
-  async function baixar(lista: string[] = TABELAS, tipo: 'backup' | 'modelo' = 'backup') {
+  async function baixar(lista: string[] = TABELAS, tipo: 'backup' | 'modelo' | 'generico' = 'backup') {
     setBaixando(true);
     const dados: Record<string, unknown[]> = {};
     const avisos: string[] = [];
@@ -32,12 +45,22 @@ export default function Backup({ avisar }: { avisar: (m: string, e?: boolean) =>
       if (error) avisos.push(t);
       else dados[t] = data ?? [];
     }
-    const conteudo = { site: 'MC Jurídico', tipo, gerado_em: new Date().toISOString(), tabelas: dados };
+    if (tipo === 'generico' && dados.configuracoes?.[0]) {
+      const cfg = dados.configuracoes[0] as Record<string, any>;
+      const nome = String(cfg.nome || '').trim();
+      const trocas: [string, string][] = [
+        [nome, 'Seu Nome'], [nome.split(' ').slice(0, 2).join(' '), 'Seu Nome'], [String(cfg.marca || ''), 'Sua Marca'],
+        [String(cfg.whatsapp_exibicao || ''), '(00) 00000-0000'], [String(cfg.instagram || ''), ''], [String(cfg.email || ''), ''],
+      ].filter(([de]) => de.length > 2) as [string, string][];
+      for (const t of Object.keys(dados)) dados[t] = limparTextos(dados[t], trocas) as unknown[];
+      Object.assign(dados.configuracoes[0] as object, LIMPAR_CONFIG);
+    }
+    const conteudo = { site: 'MC Jurídico', tipo: tipo === 'generico' ? 'modelo' : tipo, gerado_em: new Date().toISOString(), tabelas: dados };
     const blob = new Blob([JSON.stringify(conteudo, null, 2)], { type: 'application/json' });
     const a = document.createElement('a');
     const dia = new Date().toISOString().slice(0, 10);
     a.href = URL.createObjectURL(blob);
-    a.download = `${tipo}-mcjuridico-${dia}.json`;
+    a.download = tipo === 'generico' ? `modelo-generico-${dia}.json` : `${tipo}-mcjuridico-${dia}.json`;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -49,7 +72,7 @@ export default function Backup({ avisar }: { avisar: (m: string, e?: boolean) =>
     }
     setBaixando(false);
     const total = Object.values(dados).reduce((s, l) => s + l.length, 0);
-    if (tipo === 'modelo') return avisar(`Modelo baixado (${total} registros)`);
+    if (tipo !== 'backup') return avisar(`Modelo baixado (${total} registros)`);
     avisar(avisos.length ? `Backup baixado (${total} registros). Não deu para ler: ${avisos.join(', ')}` : `Backup baixado: ${total} registros`, avisos.length > 0);
   }
 
@@ -106,6 +129,7 @@ export default function Backup({ avisar }: { avisar: (m: string, e?: boolean) =>
         <p className="adm-dica" style={{ margin: 0 }}>Baixe o modelo deste site (textos, cores, tema, serviços, pacotes, perguntas e respostas prontas, sem nenhum dado de cliente) e importe no site de outro profissional. Passo a passo no arquivo NOVO-SITE.md do projeto.</p>
         <div className="adm-linha">
           <button className="adm-btn" onClick={() => baixar(MODELO, 'modelo')} disabled={baixando}>Baixar modelo do site</button>
+          <button className="adm-btn" onClick={() => baixar(MODELO.filter((t) => t !== 'comarcas'), 'generico')} disabled={baixando} title="Sem nome, marca, contatos, Pix, imagens e comarcas">Baixar modelo genérico (limpo)</button>
           <label className="adm-btn" style={{ cursor: 'pointer' }}>
             Importar modelo
             <input type="file" accept="application/json,.json" hidden disabled={restaurando} onChange={(e) => { restaurar(e.target.files?.[0], true); e.target.value = ''; }} />
