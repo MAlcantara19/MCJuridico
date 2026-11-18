@@ -7,6 +7,9 @@ export const dynamic = 'force-dynamic';
 type Item = { id: number; titulo: string; tipo: string; data: string; hora: string | null; local: string; processo: string; observacoes: string; feito: boolean; cliente: string | null };
 
 const TIPOS: Record<string, string> = { prazo: '⏰ Prazo', diligencia: '💼 Diligência', audiencia: '⚖️ Audiência', reuniao: '👥 Reunião', entrega: '📦 Entrega', outro: '📌' };
+// Cores por tipo (o iPhone e alguns apps usam; o Google Agenda usa a cor da agenda inteira, por isso o emoji no título)
+const CORES: Record<string, string> = { prazo: 'red', diligencia: 'blue', audiencia: 'purple', reuniao: 'teal', entrega: 'orange', outro: 'gray' };
+const NOMES: Record<string, string> = { prazo: 'Prazo', diligencia: 'Diligência', audiencia: 'Audiência', reuniao: 'Reunião', entrega: 'Entrega', outro: 'Outro' };
 
 // Texto seguro para o formato .ics
 const esc = (t: string) => String(t ?? '').replace(/\\/g, '\\\\').replace(/;/g, '\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
@@ -54,6 +57,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ token: 
         ? [`DTSTART;TZID=America/Sao_Paulo:${dia}T${i.hora.slice(0, 5).replace(':', '')}00`, `DTEND;TZID=America/Sao_Paulo:${dia}T${somarHora(i.hora)}`]
         : [`DTSTART;VALUE=DATE:${dia}`, `DTEND;VALUE=DATE:${diaSeguinte(i.data)}`]),
       dobrar(`SUMMARY:${esc(titulo)}`),
+      `CATEGORIES:${esc(NOMES[i.tipo] ?? 'Outro')}`,
+      `COLOR:${CORES[i.tipo] ?? 'gray'}`,
       ...(i.local ? [dobrar(`LOCATION:${esc(i.local)}`)] : []),
       ...(descricao ? [dobrar(`DESCRIPTION:${esc(descricao)}`)] : []),
       ...(i.feito ? [] : ['BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${esc(i.titulo)}`, i.hora ? 'TRIGGER:-PT1H' : 'TRIGGER:-PT15H', 'END:VALARM']),

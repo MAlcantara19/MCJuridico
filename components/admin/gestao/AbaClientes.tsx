@@ -4,12 +4,14 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '@/lib/supabase';
 import { combina } from '@/lib/util';
 import {
-  STATUS, TIPOS_CLIENTE, brl, dataBR, linkPedidoAvaliacao, mensagemCobranca, rotulo, whatsDoTelefone,
+  COR_STATUS, STATUS, TIPOS_CLIENTE, brl, dataBR, situacaoPrazo, linkPedidoAvaliacao, mensagemCobranca, pixDe, rotulo, whatsDoTelefone, corEtiqueta,
   type Atendimento, type Cliente, type Compromisso,
 } from '@/lib/gestao';
 import FormAtendimento from './FormAtendimento';
 import Orcamento from './Orcamento';
 import Recibo from './Recibo';
+import TabelaClientes from './TabelaClientes';
+import { AcessoCliente, Etiquetas, HorasCliente } from './ExtrasCliente';
 import type { Config } from '@/lib/tipos';
 import { useBase } from './useBase';
 
@@ -24,6 +26,8 @@ export default function AbaClientes({ avisar, abrirId, config, navegar }: { avis
   const [totais, setTotais] = useState<Record<number, { total: number; aReceber: number; qtd: number }>>({});
   const [busca, setBusca] = useState('');
   const [aberto, setAberto] = useState<number | 'novo' | null>(abrirId ?? null);
+  const [etiqueta, setEtiqueta] = useState('');
+  const [tabela, setTabela] = useState(false);
 
   async function carregarTotais() {
     const { data } = await supabase().from('atendimentos').select('cliente_id, valor, status, pago');
@@ -41,7 +45,12 @@ export default function AbaClientes({ avisar, abrirId, config, navegar }: { avis
   }
   useEffect(() => { carregarTotais(); }, []);
 
-  const visiveis = clientes.filter((c) => !busca.trim() || combina(`${c.nome} ${c.responsavel} ${c.cidade} ${c.telefone} ${c.email}`, busca));
+  const visiveis = clientes
+    .filter((c) => !etiqueta || (c.etiquetas ?? []).includes(etiqueta))
+    .filter((c) => !busca.trim() || combina(`${c.nome} ${c.responsavel} ${c.cidade} ${c.telefone} ${c.email} ${(c.etiquetas ?? []).join(' ')}`, busca));
+  const etiquetasUsadas = Array.from(new Set(clientes.flatMap((c) => c.etiquetas ?? []))).sort();
+
+  if (tabela) return <TabelaClientes clientes={clientes} config={config} filtroEtiqueta={etiqueta} fechar={() => setTabela(false)} />;
 
   if (aberto !== null) {
     return (
@@ -66,8 +75,17 @@ export default function AbaClientes({ avisar, abrirId, config, navegar }: { avis
       </div>
       <div className="adm-linha">
         <input type="search" value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar cliente, cidade, telefone…" aria-label="Buscar cliente" style={{ flex: 1, minWidth: 200 }} />
+        <button className="adm-btn" onClick={() => setTabela(true)}>📊 Tabela (imprimir / Excel)</button>
         <button className="adm-btn pri" onClick={() => setAberto('novo')}>+ Novo cliente</button>
       </div>
+      {etiquetasUsadas.length > 0 && (
+        <div className="adm-linha">
+          <button className={`adm-btn peq${!etiqueta ? ' pri' : ''}`} onClick={() => setEtiqueta('')}>Todos</button>
+          {etiquetasUsadas.map((e) => (
+            <button key={e} className={`etq${etiqueta === e ? '' : ' etq-fora'}`} style={{ ['--cor' as string]: corEtiqueta(e), cursor: 'pointer', fontSize: '0.8rem', padding: '6px 12px' }} onClick={() => setEtiqueta(etiqueta === e ? '' : e)}>{e}</button>
+          ))}
+        </div>
+      )}
       {clientes.length === 0 && <p className="adm-sub">Nenhum cliente ainda. Cadastre o primeiro ou use “Virar cliente” em uma solicitação.</p>}
       <div className="adm-lista">
         {visiveis.map((c) => {
@@ -77,6 +95,11 @@ export default function AbaClientes({ avisar, abrirId, config, navegar }: { avis
               <span className="cli-inicial">{c.nome.trim()[0]?.toUpperCase() ?? '?'}</span>
               <span style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
                 <strong style={{ display: 'block' }}>{c.nome}</strong>
+                {(c.etiquetas ?? []).length > 0 && (
+                  <span style={{ display: 'flex', flexWrap: 'wrap', gap: 4, margin: '3px 0' }}>
+                    {(c.etiquetas ?? []).map((e) => <span key={e} className="etq" style={{ ['--cor' as string]: corEtiqueta(e) }}>{e}</span>)}
+                  </span>
+                )}
                 <span className="adm-dica" style={{ margin: 0 }}>
                   {rotulo(TIPOS_CLIENTE, c.tipo)}{c.cidade ? ` · ${c.cidade}` : ''}{c.responsavel ? ` · ${c.responsavel}` : ''}
                 </span>
@@ -163,6 +186,13 @@ function FichaCliente({ id, config, navegar, clientes, servicos, avisar, voltar,
   const pendentes = concluidos.filter((a) => !a.pago);
 
   // Cobrança educada pelo WhatsApp (um serviço ou todos os pendentes)
+  function soPix(lista: Atendimento[]) {
+    if (!v.telefone) return avisar('Cadastre o WhatsApp do cliente.', true);
+    if (!config.pix_chave) return avisar('Cadastre a chave Pix em Textos e contatos.', true);
+    const total = lista.reduce((s, a) => s + (Number(a.valor) || 0), 0);
+    window.open(whatsDoTelefone(v.telefone, pixDe(config, total, lista.length === 1 ? lista[0].codigo || undefined : undefined)), '_blank', 'noopener');
+  }
+
   function cobrar(lista: Atendimento[]) {
     if (!v.telefone) return avisar('Cadastre o WhatsApp do cliente para cobrar.', true);
     const total = lista.reduce((s, a) => s + (Number(a.valor) || 0), 0);
@@ -221,6 +251,14 @@ function FichaCliente({ id, config, navegar, clientes, servicos, avisar, voltar,
         </div>
       </form>
 
+      {id && atual && !orcando && (
+        <div className="extras-cliente nao-imprimir">
+          <Etiquetas cliente={atual} avisar={avisar} aoMudar={() => {}} />
+          <AcessoCliente cliente={{ ...atual, ...v } as Cliente} avisar={avisar} />
+          <HorasCliente cliente={atual} avisar={avisar} />
+        </div>
+      )}
+
       {id && atual && (
         <div className="adm-linha nao-imprimir">
           <button className="adm-btn pri" onClick={() => setOrcando(true)}>Gerar orçamento</button>
@@ -238,6 +276,9 @@ function FichaCliente({ id, config, navegar, clientes, servicos, avisar, voltar,
           )}
           {pendentes.length > 0 && (
             <button className="adm-btn" onClick={() => cobrar(pendentes)}>Cobrar tudo ({brl(aReceber)})</button>
+          )}
+          {pendentes.length > 0 && config.pix_chave && (
+            <button className="adm-btn" onClick={() => soPix(pendentes)}>💠 Mandar só o Pix</button>
           )}
         </div>
       )}
@@ -268,7 +309,10 @@ function FichaCliente({ id, config, navegar, clientes, servicos, avisar, voltar,
               <div key={s.id} style={{ display: 'grid', gap: 6 }}>
                 <LinhaServico s={s} aoClicar={() => setEditando(s)} />
                 {s.status === 'concluido' && !s.pago && (
-                  <button className="adm-btn peq" style={{ justifySelf: 'end' }} onClick={() => cobrar([s])}>Cobrar no WhatsApp</button>
+                  <span className="adm-linha" style={{ justifyContent: 'flex-end' }}>
+                    <button className="adm-btn peq" onClick={() => cobrar([s])}>Cobrar no WhatsApp</button>
+                    {config.pix_chave && <button className="adm-btn peq" onClick={() => soPix([s])}>💠 Só o Pix</button>}
+                  </span>
                 )}
                 {s.pago && (
                   <button className="adm-btn peq" style={{ justifySelf: 'end' }} onClick={() => setRecibo(s)}>Recibo em PDF</button>
@@ -339,20 +383,26 @@ function FichaCliente({ id, config, navegar, clientes, servicos, avisar, voltar,
 }
 
 export function LinhaServico({ s, cliente, aoClicar }: { s: Atendimento; cliente?: string; aoClicar: () => void }) {
+  const prazo = situacaoPrazo(s.prazo, s.status === 'concluido' || s.status === 'cancelado');
+  const rotuloSit = s.status === 'concluido'
+    ? (s.pago ? 'Pago' : s.pagamento_informado ? 'Pago, a conferir' : 'A receber')
+    : rotulo(STATUS, s.status);
+  const cor = s.status === 'concluido' ? (s.pago ? '#2e7d32' : s.pagamento_informado ? '#00796b' : '#b3261e') : (COR_STATUS[s.status] ?? '#5b6780');
   return (
-    <button className="adm-item cli-linha" onClick={aoClicar}>
+    <button className="adm-item cli-linha" onClick={aoClicar} style={{ borderLeft: `4px solid ${cor}` }}>
       <span style={{ flex: 1, minWidth: 0, textAlign: 'left' }}>
-        <strong style={{ display: 'block' }}>{s.servico}</strong>
+        <strong style={{ display: 'block' }}>{s.codigo && <span className="codigo">{s.codigo}</span>} {s.servico}</strong>
         <span className="adm-dica" style={{ margin: 0 }}>
           {dataBR(s.data)}{cliente ? ` · ${cliente}` : ''}{s.processo ? ` · Proc. ${s.processo}` : ''}
         </span>
+        {s.prazo && s.status !== 'concluido' && s.status !== 'cancelado' && (
+          <span style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: prazo.cor }}>⏰ Prazo: {prazo.rotulo}</span>
+        )}
         {s.descricao && <span style={{ display: 'block', fontSize: '0.86rem', marginTop: 2 }}>{s.descricao}</span>}
       </span>
       <span style={{ textAlign: 'right', flexShrink: 0 }}>
         <strong style={{ display: 'block' }}>{brl(s.valor)}</strong>
-        <span className={`etiqueta et-${s.status}${s.status === 'concluido' && !s.pago ? ' et-pendente' : ''}`}>
-          {s.status === 'concluido' ? (s.pago ? 'Pago' : 'A receber') : rotulo(STATUS, s.status)}
-        </span>
+        <span className="etq" style={{ ['--cor' as string]: cor }}>{rotuloSit}</span>
       </span>
     </button>
   );

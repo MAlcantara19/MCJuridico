@@ -3,5 +3,8 @@ import type { MetadataRoute } from 'next';
 import { URL_SITE } from '@/lib/site';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return [{ url: URL_SITE, lastModified: new Date(), changeFrequency: 'weekly', priority: 1 }];
+  return [
+    { url: URL_SITE, lastModified: new Date(), changeFrequency: 'weekly', priority: 1 },
+    { url: `${URL_SITE}/escritorios`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.8 },
+  ];
 }

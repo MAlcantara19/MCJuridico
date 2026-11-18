@@ -29,6 +29,7 @@ export default function Correspondente({ dados }: { dados: Dados }) {
           <div>
             <h3 className="titulo-area"><IconeArea nome={cats[0].icone} tamanho={26} /> {cats[0].nome}</h3>
             <ListaPrecos servicos={lista} config={c} area={cats[0].nome} emoji={emojiArea(cats[0])} />
+            <p className="nota" style={{ margin: '14px 0 0' }}><a href="/escritorios" style={{ color: 'var(--ouro-texto)', fontWeight: 600 }}>Seu escritório é de outra cidade? Veja como funciona →</a></p>
             {linhas(c.observacoes_correspondente).map((o) => (
               <p key={o} className="nota" style={{ margin: '14px 0 0' }}>{o}</p>
             ))}

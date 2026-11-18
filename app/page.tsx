@@ -56,6 +56,10 @@ export default async function Pagina() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ficha).replace(/</g, '\\u003c') }} />
+      {/* Tema padrão escolhido no painel, aplicado antes de aparecer (evita piscar no modo escuro) */}
+      {c.tema_padrao && c.tema_padrao !== 'auto' && (
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{if(!localStorage.getItem('tema'))document.documentElement.dataset.tema=${JSON.stringify(c.tema_padrao)};}catch(e){}})();` }} />
+      )}
       <Site dados={dados} />
     </>
   );

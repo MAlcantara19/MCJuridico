@@ -1,11 +1,37 @@
 // Funções pequenas usadas em vários lugares.
 
 // Monta o link do WhatsApp com mensagem pronta.
+// Link padrão (abre o aplicativo no celular). No computador, o CorrigeWhatsApp troca
+// para o WhatsApp Web na hora do clique, porque só ele manteve os emojis no teste.
 export function linkWhats(numero: string, texto?: string) {
   const n = (numero || '').replace(/\D/g, '');
-  // api.whatsapp.com (e não wa.me): o redirecionamento do wa.me troca emojis por � no WhatsApp do computador
-  // Endereço final do WhatsApp (com a barra e os parâmetros que ele mesmo usa), sem nenhum redirecionamento no meio
-  return `https://api.whatsapp.com/send/?phone=${n}${texto ? `&text=${encodeURIComponent(texto)}` : ''}&type=phone_number&app_absent=0`;
+  const msg = texto ? `&text=${encodeURIComponent(texto)}` : '';
+  return `https://api.whatsapp.com/send/?phone=${n}${msg}&type=phone_number&app_absent=0`;
+}
+
+// Versão para o computador (WhatsApp Web)
+export function linkWhatsWeb(numero: string, texto?: string) {
+  const n = (numero || '').replace(/\D/g, '');
+  return `https://web.whatsapp.com/send?phone=${n}${texto ? `&text=${encodeURIComponent(texto)}` : ''}`;
+}
+
+// true no computador, false no celular/tablet (no servidor, considera celular)
+export function ehComputador() {
+  if (typeof navigator === 'undefined') return false;
+  return !/Android|iPhone|iPad|iPod|Mobile|Opera Mini|IEMobile/i.test(navigator.userAgent);
+}
+
+// Troca um link de WhatsApp para o formato do aparelho (usado no clique, para links montados no servidor)
+export function ajustarLinkWhats(href: string) {
+  try {
+    const u = new URL(href);
+    if (!/(^|\.)whatsapp\.com$|^wa\.me$/.test(u.hostname) || u.hostname === 'web.whatsapp.com') return href;
+    const telefone = u.searchParams.get('phone') || u.pathname.replace(/\D/g, '');
+    const texto = u.searchParams.get('text') || '';
+    return ehComputador() ? linkWhatsWeb(telefone, texto || undefined) : linkWhats(telefone, texto || undefined);
+  } catch {
+    return href;
+  }
 }
 
 // Tira acentos e deixa minúsculo (para a busca do assistente).

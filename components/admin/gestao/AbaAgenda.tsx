@@ -3,7 +3,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '@/lib/supabase';
 import { combina } from '@/lib/util';
-import { TIPOS_AGENDA, dataBR, diaSemana, hojeISO, rotulo, somarDias, type Compromisso } from '@/lib/gestao';
+import { COR_AGENDA, TIPOS_AGENDA, dataBR, diaSemana, hojeISO, rotulo, somarDias, type Compromisso } from '@/lib/gestao';
 import { useBase } from './useBase';
 import AgendaCelular from './AgendaCelular';
 
@@ -65,6 +65,12 @@ export default function AbaAgenda({ avisar }: { avisar: Aviso }) {
 
       <AgendaCelular avisar={avisar} />
 
+      <div className="adm-linha" aria-label="Legenda de cores">
+        {TIPOS_AGENDA.map((t) => (
+          <span key={t.valor} className="etq" style={{ ['--cor' as string]: (COR_AGENDA[t.valor] ?? COR_AGENDA.outro).cor }}>{(COR_AGENDA[t.valor] ?? COR_AGENDA.outro).emoji} {t.rotulo}</span>
+        ))}
+      </div>
+
       {atrasados.length > 0 && visao !== 'feitos' && (
         <div className="adm-item" style={{ borderColor: '#b3261e' }}>
           <strong style={{ color: '#b3261e' }}>{atrasados.length} compromisso{atrasados.length > 1 ? 's' : ''} atrasado{atrasados.length > 1 ? 's' : ''}</strong>
@@ -95,10 +101,10 @@ export default function AbaAgenda({ avisar }: { avisar: Aviso }) {
         <div key={dia} style={{ display: 'grid', gap: 8 }}>
           <h3 className={`agenda-dia${dia < hoje && visao !== 'feitos' ? ' atrasado' : ''}`}>{rotuloDia(dia)}</h3>
           {lista.map((i) => (
-            <div key={i.id} className={`adm-item agenda-item${i.feito ? ' feito' : ''}`}>
+            <div key={i.id} className={`adm-item agenda-item${i.feito ? ' feito' : ''}`} style={{ borderLeft: `5px solid ${(COR_AGENDA[i.tipo] ?? COR_AGENDA.outro).cor}` }}>
               <input type="checkbox" checked={i.feito} onChange={() => alternarFeito(i)} aria-label={`Marcar ${i.titulo} como feito`} />
               <button className="agenda-texto" onClick={() => setEditando(i)}>
-                <span className="etiqueta">{rotulo(TIPOS_AGENDA, i.tipo)}</span>
+                <span className="etq" style={{ ['--cor' as string]: (COR_AGENDA[i.tipo] ?? COR_AGENDA.outro).cor }}>{(COR_AGENDA[i.tipo] ?? COR_AGENDA.outro).emoji} {rotulo(TIPOS_AGENDA, i.tipo)}</span>
                 <strong>{i.hora ? `${i.hora.slice(0, 5)} · ` : ''}{i.titulo}</strong>
                 <span className="adm-dica" style={{ margin: 0 }}>
                   {[nomeCliente(i.cliente_id), i.local, i.processo && `Proc. ${i.processo}`].filter(Boolean).join(' · ')}

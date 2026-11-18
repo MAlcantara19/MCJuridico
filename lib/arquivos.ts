@@ -43,3 +43,10 @@ export async function apagarPrivado(caminho: string) {
   if (!caminho) return;
   await supabase().storage.from('privado').remove([caminho]);
 }
+
+// ---------- Arquivos enviados pelos clientes (pasta "envios", privada) ----------
+export async function linkEnvio(caminho: string, segundos = 120) {
+  const { data, error } = await supabase().storage.from('envios').createSignedUrl(caminho, segundos);
+  if (error) throw error;
+  return data.signedUrl;
+}

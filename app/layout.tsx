@@ -1,6 +1,7 @@
 // Estrutura geral de todas as páginas (fontes, tema claro/escuro).
 import './globals.css';
 import type { ReactNode } from 'react';
+import CorrigeWhatsApp from '@/components/site/CorrigeWhatsApp';
 
 // Liga o tema salvo antes da página aparecer (evita piscar).
 const scriptTema = `(function(){try{var t=localStorage.getItem('tema');if(t)document.documentElement.dataset.tema=t;}catch(e){}})();`;
@@ -19,7 +20,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         />
         <script dangerouslySetInnerHTML={{ __html: scriptTema }} />
       </head>
-      <body>{children}</body>
+      <body>{children}<CorrigeWhatsApp /></body>
     </html>
   );
 }

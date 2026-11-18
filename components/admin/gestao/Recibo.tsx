@@ -4,7 +4,7 @@ import type { Config } from '@/lib/tipos';
 import { msgRecibo } from '@/lib/mensagens';
 import { brl, dataBR, porExtenso, whatsDoTelefone, type Atendimento, type Cliente } from '@/lib/gestao';
 
-export default function Recibo({ atendimento: a, cliente, config, fechar }: { atendimento: Atendimento; cliente?: Cliente; config: Config; fechar: () => void }) {
+export default function Recibo({ atendimento: a, cliente, config, fechar, publico }: { atendimento: Atendimento; cliente?: Cliente; config: Config; fechar: () => void; publico?: boolean }) {
   const numero = `REC-${(a.data_pagamento || a.data).slice(0, 4)}-${String(a.id).padStart(4, '0')}`;
   const valor = Number(a.valor) || 0;
   const pagador = cliente?.nome || 'Cliente';
@@ -19,14 +19,14 @@ export default function Recibo({ atendimento: a, cliente, config, fechar }: { at
         </div>
         <div className="adm-linha">
           <button className="adm-btn pri" onClick={() => window.print()}>Gerar PDF</button>
-          {cliente?.telefone && (
+          {!publico && cliente?.telefone && (
             <a className="adm-btn" target="_blank" rel="noopener noreferrer"
               href={whatsDoTelefone(cliente.telefone, msgRecibo({ nome: cliente.responsavel || cliente.nome, numero, servico: a.servico, valor: brl(valor) }))}>
               Enviar no WhatsApp
             </a>
           )}
         </div>
-        <p className="adm-dica" style={{ margin: 0 }}>Gere o PDF, salve e anexe na conversa do WhatsApp que abrir.</p>
+        <p className="adm-dica" style={{ margin: 0 }}>{publico ? 'No celular, escolha “Salvar como PDF” na tela de impressão.' : 'Gere o PDF, salve e anexe na conversa do WhatsApp que abrir.'}</p>
       </div>
 
       <article className="relatorio" style={{ ['--rel-cor' as string]: config.cor_primaria, ['--rel-ouro' as string]: config.cor_destaque }}>

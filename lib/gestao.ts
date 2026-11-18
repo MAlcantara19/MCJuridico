@@ -1,6 +1,7 @@
 // Tipos e funções da parte de gestão (clientes, serviços realizados, agenda).
 import { MSG_COBRANCA_PADRAO, msgPedirAvaliacao } from './mensagens';
 import { pixCopiaECola } from './pix';
+import { linkWhats } from './util';
 
 type DadosPix = { pix_chave?: string; pix_nome?: string; pix_cidade?: string; nome?: string };
 
@@ -14,13 +15,43 @@ export type Cliente = {
   id: number; nome: string; tipo: string; responsavel: string; documento: string;
   telefone: string; email: string; cidade: string; observacoes: string; ativo: boolean; criado_em: string;
   avaliacao_pedida_em?: string | null;
+  etiquetas?: string[] | null; horas_mes?: number | null; mostrar_horas?: boolean | null;
+  acesso_token?: string | null; acesso_pin?: string | null;
 };
+
+// Etiquetas sugeridas (dá para criar outras) e suas cores
+export const ETIQUETAS: Record<string, string> = {
+  'Pacote mensal': '#2e7d32',
+  'VIP': '#a8894e',
+  'Inadimplente': '#b3261e',
+  'Escritório parceiro': '#1d4f91',
+  'Novo': '#6a3fb5',
+  'Outra cidade': '#00796b',
+};
+export const corEtiqueta = (e: string) => ETIQUETAS[e] ?? '#5b6780';
+
+// Cor da situação do pedido (tabela, etiquetas e área do cliente)
+export const COR_STATUS: Record<string, string> = {
+  orcamento: '#6a3fb5', aguardando_docs: '#e08a00', a_fazer: '#1d4f91', andamento: '#00796b', concluido: '#2e7d32', cancelado: '#5b6780',
+};
+
+// Prazo: atrasado (vermelho), até 3 dias (laranja), ok (verde)
+export function situacaoPrazo(prazo?: string | null, feito?: boolean) {
+  if (!prazo || feito) return { cor: '#5b6780', rotulo: prazo ? dataBR(prazo) : '—', nivel: 0 };
+  const dias = Math.round((new Date(`${prazo}T12:00:00`).getTime() - new Date(`${hojeISO()}T12:00:00`).getTime()) / 864e5);
+  if (dias < 0) return { cor: '#b3261e', rotulo: `${dataBR(prazo)} · atrasado ${-dias}d`, nivel: 3 };
+  if (dias === 0) return { cor: '#b3261e', rotulo: `${dataBR(prazo)} · hoje`, nivel: 3 };
+  if (dias <= 3) return { cor: '#e08a00', rotulo: `${dataBR(prazo)} · em ${dias}d`, nivel: 2 };
+  return { cor: '#2e7d32', rotulo: `${dataBR(prazo)} · em ${dias}d`, nivel: 1 };
+}
 
 export type Atendimento = {
   id: number; cliente_id: number | null; servico: string; descricao: string; processo: string;
   data: string; valor: number; status: string; pago: boolean; data_pagamento: string | null;
   forma_pagamento: string; criado_em: string;
   checklist_feito?: string[] | null; comprovante?: string | null;
+  codigo?: string | null; prazo?: string | null; visivel_cliente?: boolean | null;
+  pagamento_informado?: boolean | null; comprovante_cliente?: string | null;
 };
 
 export type Despesa = {
@@ -71,6 +102,7 @@ export const TIPOS_CLIENTE = [
 
 export const STATUS = [
   { valor: 'orcamento', rotulo: 'Orçamento' },
+  { valor: 'aguardando_docs', rotulo: 'Aguardando documentos' },
   { valor: 'a_fazer', rotulo: 'A fazer' },
   { valor: 'andamento', rotulo: 'Em andamento' },
   { valor: 'concluido', rotulo: 'Concluído' },
@@ -85,6 +117,16 @@ export const TIPOS_AGENDA = [
   { valor: 'entrega', rotulo: 'Entrega' },
   { valor: 'outro', rotulo: 'Outro' },
 ];
+
+// Cor e emoji de cada tipo de compromisso (agenda do painel e calendário do celular)
+export const COR_AGENDA: Record<string, { cor: string; emoji: string }> = {
+  prazo: { cor: '#b3261e', emoji: '⏰' },
+  diligencia: { cor: '#1d4f91', emoji: '💼' },
+  audiencia: { cor: '#6a3fb5', emoji: '⚖️' },
+  reuniao: { cor: '#00796b', emoji: '👥' },
+  entrega: { cor: '#e08a00', emoji: '📦' },
+  outro: { cor: '#5b6780', emoji: '📌' },
+};
 
 export const FORMAS_PAGAMENTO = ['Pix', 'Transferência', 'Dinheiro', 'Boleto', 'Cartão'];
 
@@ -144,9 +186,7 @@ export function intervalo(periodo: string): [string, string] {
 export function whatsDoTelefone(tel: string, texto?: string) {
   let n = (tel || '').replace(/\D/g, '');
   if (n.length <= 11) n = `55${n}`;
-  // api.whatsapp.com (e não wa.me): o redirecionamento do wa.me troca emojis por � no WhatsApp do computador
-  // Endereço final do WhatsApp (com a barra e os parâmetros que ele mesmo usa), sem nenhum redirecionamento no meio
-  return `https://api.whatsapp.com/send/?phone=${n}${texto ? `&text=${encodeURIComponent(texto)}` : ''}&type=phone_number&app_absent=0`;
+  return linkWhats(n, texto);
 }
 
 export { MSG_COBRANCA_PADRAO } from './mensagens';

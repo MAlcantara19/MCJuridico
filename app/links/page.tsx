@@ -35,7 +35,7 @@ export default async function Links() {
             Conversar no WhatsApp
           </BotaoRegistro>
           <Link className="link-item" href="/#servicos">Serviços e valores</Link>
-          <Link className="link-item" href="/#correspondente">Diligências e correspondente</Link>
+          <Link className="link-item" href="/escritorios">⚖️ Para escritórios: correspondente</Link>
           <Link className="link-item" href="/#pacotes">Pacotes mensais</Link>
           {pacote && (
             <BotaoRegistro className="link-item" href={linkWhats(c.whatsapp, preencher(c.mensagem_pacote || MSG_PACOTE_PADRAO, { pacote: pacote.nome, horas: pacote.horas, preco: pacote.preco, publico: pacote.publico, emoji: emojiPacote(pacote) }))}>

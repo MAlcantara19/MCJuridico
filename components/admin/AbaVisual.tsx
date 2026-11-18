@@ -11,9 +11,10 @@ const FONTES = ['Cormorant Garamond', 'Playfair Display', 'Libre Baskerville', '
 
 // Temas prontos: mudam o estilo geral e já ajustam cores, fonte e apresentação
 const TEMAS = [
-  { id: 'classico', nome: 'Clássico', desc: 'Azul-marinho, dourado e títulos serifados. Elegante e tradicional.', v: { tema_estilo: 'classico', cor_primaria: '#0E1B33', cor_destaque: '#A8894E', fonte_titulo: 'Cormorant Garamond', hero_layout: 'com_foto', hero_moldura: 'quadrado', hero_efeito: 'brilho' } },
-  { id: 'moderno', nome: 'Moderno', desc: 'Títulos sem serifa, cantos arredondados e degradê no topo.', v: { tema_estilo: 'moderno', cor_primaria: '#13294B', cor_destaque: '#B79B6C', fonte_titulo: 'Montserrat', hero_layout: 'com_foto', hero_moldura: 'circulo', hero_efeito: 'grade' } },
-  { id: 'minimalista', nome: 'Minimalista', desc: 'Fundo claro, linhas finas e muito espaço. Discreto e leve.', v: { tema_estilo: 'minimalista', cor_primaria: '#111318', cor_destaque: '#A8894E', fonte_titulo: 'Libre Baskerville', hero_layout: 'classico', hero_moldura: 'livre', hero_efeito: 'nenhum' } },
+  { id: 'classico', nome: 'Clássico', desc: 'Azul-marinho, dourado e títulos serifados. Elegante e tradicional.', v: { tema_estilo: 'classico', tema_padrao: 'claro', cor_primaria: '#0E1B33', cor_destaque: '#A8894E', fonte_titulo: 'Cormorant Garamond', hero_layout: 'com_foto', hero_moldura: 'quadrado', hero_efeito: 'brilho' } },
+  { id: 'moderno', nome: 'Moderno', desc: 'Títulos sem serifa, cantos arredondados e degradê no topo.', v: { tema_estilo: 'moderno', tema_padrao: 'claro', cor_primaria: '#13294B', cor_destaque: '#B79B6C', fonte_titulo: 'Montserrat', hero_layout: 'com_foto', hero_moldura: 'circulo', hero_efeito: 'grade' } },
+  { id: 'minimalista', nome: 'Minimalista', desc: 'Fundo claro, linhas finas e muito espaço. Discreto e leve.', v: { tema_estilo: 'minimalista', tema_padrao: 'claro', cor_primaria: '#111318', cor_destaque: '#A8894E', fonte_titulo: 'Libre Baskerville', hero_layout: 'classico', hero_moldura: 'livre', hero_efeito: 'nenhum' } },
+  { id: 'noturno', nome: 'Noturno', desc: 'Abre no modo escuro: fundo preto, azul-marinho e dourado. Sofisticado.', v: { tema_estilo: 'classico', tema_padrao: 'escuro', cor_primaria: '#0E1B33', cor_destaque: '#C9AB72', fonte_titulo: 'Cormorant Garamond', hero_layout: 'com_foto', hero_moldura: 'livre', hero_efeito: 'brilho' } },
 ];
 
 // Combinações prontas (cor principal + destaque)
@@ -84,7 +85,7 @@ export default function AbaVisual({ config, salvar, avisar }: {
         <h3>Temas prontos</h3>
         <div className="temas">
           {TEMAS.map((t) => (
-            <button key={t.id} className={`tema-card tema-${t.id}${v.tema_estilo === t.id ? ' ativo' : ''}`} onClick={() => setV((x) => ({ ...x, ...(t.v as Partial<typeof x>) }))}>
+            <button key={t.id} className={`tema-card tema-${t.id}${(t.id === 'noturno' ? v.tema_padrao === 'escuro' : v.tema_estilo === t.id && v.tema_padrao !== 'escuro') ? ' ativo' : ''}`} onClick={() => setV((x) => ({ ...x, ...(t.v as Partial<typeof x>) }))}>
               <span className="tema-amostra" style={{ ['--a' as string]: t.v.cor_primaria, ['--b' as string]: t.v.cor_destaque, fontFamily: t.v.fonte_titulo }}>Aa</span>
               <strong>{t.nome}</strong>
               <span className="adm-dica" style={{ margin: 0 }}>{t.desc}</span>

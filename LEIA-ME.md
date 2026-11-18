@@ -115,6 +115,18 @@ Rode `supabase/atualizacao-13.sql`.
 - Master: Baixar backup (.json)
 - Visual e layout: temas prontos (Clássico, Moderno, Minimalista)
 
+## Atualização 15 (Fase 2)
+
+Rode `supabase/atualizacao-15.sql` e depois `npm install` (Next.js 16.4.6, que corrige uma falha de segurança, e o pacote do Excel).
+- Pedidos com código (MC-0001…), etapa "Aguardando documentos", prazo e observações internas (texto, ditado e áudio)
+- Área do cliente: /cliente/<link> com código de 4 dígitos (Clientes > ficha > Área do cliente)
+- Cliente envia documentos e comprovante; o pedido fica "Pago, a conferir"
+- "Só o Pix" na cobrança · etiquetas com filtro · horas do pacote com cronômetro
+- Tabela de clientes colorida (imprimir e Excel) · relatório mensal em PDF
+- Agenda com cores por tipo · tema Noturno · restaurar backup e duplicar site (veja NOVO-SITE.md)
+- Página /escritorios para advogados de outras cidades
+- WhatsApp: no computador abre pelo WhatsApp Web (mantém os emojis); no celular, pelo app
+
 ## Onde mexer
 
 - Pelo painel `/admin` (sem código): textos, marca, cores, fonte, tema, logo, foto,

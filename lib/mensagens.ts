@@ -210,3 +210,28 @@ export function msgStatus(p: { nome: string; servico: string; status: string; va
     'Qualquer dúvida, estou à disposição! 😊',
   );
 }
+
+// ---------- Fase 2 ----------
+export function msgAcessoCliente(p: { nome: string; link: string; pin: string }) {
+  return juntar(
+    ola(p.nome),
+    'Agora você pode acompanhar seus pedidos comigo pela sua área do cliente: 📋',
+    topicos(['Situação e prazo de cada pedido', 'Envio de documentos', 'Orçamentos e recibos', 'Confirmação de pagamento']),
+    `👉 ${p.link}\n🔑 Código de acesso: *${p.pin}*`,
+    'Guarde esta mensagem. Qualquer dúvida, é só me chamar! 😊',
+  );
+}
+
+// Só o código Pix, para copiar com um toque
+export function msgSoPix(pix: string) {
+  return pix;
+}
+
+export function msgEscritorio(p: { cidade?: string; servico?: string }) {
+  return juntar(
+    'Olá, Maria Carolina! 👋\nSou de um escritório de advocacia e vim pela sua página para escritórios. ⚖️',
+    `💼 *${p.servico || 'Correspondente jurídica'}*`,
+    topicos([p.cidade && `Comarca: ${p.cidade}`]),
+    'Poderia me passar disponibilidade e valores? 😊',
+  );
+}

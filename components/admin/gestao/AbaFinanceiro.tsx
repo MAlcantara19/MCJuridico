@@ -3,9 +3,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { combina } from '@/lib/util';
-import { PERIODOS, STATUS, baixarPlanilha, brl, dataBR, intervalo, iso, linkPedidoAvaliacao, mensagemCobranca, podePedirAvaliacao, rotulo, whatsDoTelefone, type Atendimento, type Cliente, type Despesa } from '@/lib/gestao';
+import { PERIODOS, STATUS, baixarPlanilha, brl, dataBR, intervalo, iso, linkPedidoAvaliacao, mensagemCobranca, pixDe, podePedirAvaliacao, rotulo, whatsDoTelefone, type Atendimento, type Cliente, type Despesa } from '@/lib/gestao';
 import Despesas from './Despesas';
 import Recibo from './Recibo';
+import RelatorioMensal from './RelatorioMensal';
 import type { Config } from '@/lib/tipos';
 import FormAtendimento from './FormAtendimento';
 import { LinhaServico } from './AbaClientes';
@@ -18,7 +19,8 @@ export default function AbaFinanceiro({ avisar, config }: { avisar: Aviso; confi
   const [sugestao, setSugestao] = useState<Cliente | null>(null);
   const [todos, setTodos] = useState<Atendimento[]>([]);
   const [periodo, setPeriodo] = useState('mes');
-  const [filtro, setFiltro] = useState<'todos' | 'receber' | 'pagos' | 'abertos'>('todos');
+  const [filtro, setFiltro] = useState<'todos' | 'receber' | 'conferir' | 'pagos' | 'abertos'>('todos');
+  const [relMensal, setRelMensal] = useState(false);
   const [busca, setBusca] = useState('');
   const [editando, setEditando] = useState<Partial<Atendimento> | null>(null);
   const [despesas, setDespesas] = useState<Despesa[]>([]);
@@ -78,8 +80,14 @@ export default function AbaFinanceiro({ avisar, config }: { avisar: Aviso; confi
   const maiorMes = Math.max(1, ...meses.map((m) => m.valor));
 
   const lista = doPeriodo
-    .filter((a) => filtro === 'todos' || (filtro === 'receber' ? a.status === 'concluido' && !a.pago : filtro === 'pagos' ? a.pago : emAberto.includes(a)))
+    .filter((a) => filtro === 'todos' || (filtro === 'receber' ? a.status === 'concluido' && !a.pago : filtro === 'conferir' ? !a.pago && !!a.pagamento_informado : filtro === 'pagos' ? a.pago : emAberto.includes(a)))
     .filter((a) => !busca.trim() || combina(`${a.servico} ${a.descricao} ${a.processo} ${nomeCliente(a.cliente_id)}`, busca));
+
+  function soPix(a: Atendimento) {
+    const c = clientes.find((x) => x.id === a.cliente_id);
+    if (!c?.telefone) return avisar('Este pedido não tem cliente com WhatsApp cadastrado.', true);
+    window.open(whatsDoTelefone(c.telefone, pixDe(config, Number(a.valor) || 0, a.codigo || undefined)), '_blank', 'noopener');
+  }
 
   function cobrar(a: Atendimento) {
     const c = clientes.find((x) => x.id === a.cliente_id);
@@ -120,6 +128,8 @@ export default function AbaFinanceiro({ avisar, config }: { avisar: Aviso; confi
     recarregar();
   }
 
+  if (relMensal) return <RelatorioMensal todos={todos} despesas={despesas} clientes={clientes} config={config} fechar={() => setRelMensal(false)} />;
+
   return (
     <div style={{ display: 'grid', gap: 16 }}>
       <div>
@@ -133,6 +143,7 @@ export default function AbaFinanceiro({ avisar, config }: { avisar: Aviso; confi
         </select>
         <span className="adm-linha">
           <button className="adm-btn" onClick={exportar} disabled={!doPeriodo.length}>Baixar planilha (Excel)</button>
+          <button className="adm-btn" onClick={() => setRelMensal(true)}>Relatório do mês (PDF)</button>
           <button className="adm-btn pri" onClick={() => setEditando({})}>+ Registrar serviço</button>
         </span>
       </div>
@@ -199,7 +210,7 @@ export default function AbaFinanceiro({ avisar, config }: { avisar: Aviso; confi
 
       {aba === 'servicos' && (<>
       <div className="adm-linha">
-        {([['todos', 'Todos'], ['receber', 'A receber'], ['pagos', 'Pagos'], ['abertos', 'Em aberto']] as const).map(([k, r]) => (
+        {([['todos', 'Todos'], ['receber', 'A receber'], ['conferir', 'Pago, a conferir'], ['pagos', 'Pagos'], ['abertos', 'Em aberto']] as const).map(([k, r]) => (
           <button key={k} className={`adm-btn peq${filtro === k ? ' pri' : ''}`} onClick={() => setFiltro(k)}>{r}</button>
         ))}
         <input type="search" value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar serviço, cliente, processo…" aria-label="Buscar serviço" style={{ flex: 1, minWidth: 180 }} />
@@ -213,6 +224,7 @@ export default function AbaFinanceiro({ avisar, config }: { avisar: Aviso; confi
             {a.status === 'concluido' && !a.pago && (
               <span className="adm-linha" style={{ justifyContent: 'flex-end' }}>
                 <button className="adm-btn peq" onClick={() => cobrar(a)}>Cobrar no WhatsApp</button>
+                {config.pix_chave && <button className="adm-btn peq" onClick={() => soPix(a)}>💠 Só o Pix</button>}
                 <button className="adm-btn peq" onClick={() => marcarPago(a)}>Marcar como pago</button>
               </span>
             )}

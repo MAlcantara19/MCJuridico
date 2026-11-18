@@ -5,7 +5,9 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '@/lib/supabase';
 import { linhas } from '@/lib/util';
-import { enviarPrivado, linkPrivado } from '@/lib/arquivos';
+import { enviarPrivado, linkEnvio, linkPrivado } from '@/lib/arquivos';
+import NotasPedido from './NotasPedido';
+import EnviosPedido from './EnviosPedido';
 import { msgPedirDocumentos, msgStatus } from '@/lib/mensagens';
 import { FORMAS_PAGAMENTO, STATUS, brl, hojeISO, whatsDoTelefone, type Atendimento, type Cliente } from '@/lib/gestao';
 
@@ -30,6 +32,8 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
     pago: inicial?.pago ?? false,
     data_pagamento: inicial?.data_pagamento ?? '',
     forma_pagamento: inicial?.forma_pagamento ?? 'Pix',
+    prazo: inicial?.prazo ?? '',
+    visivel_cliente: inicial?.visivel_cliente ?? true,
   });
   const [feitos, setFeitos] = useState<string[]>(inicial?.checklist_feito ?? []);
   const [comprovante, setComprovante] = useState<string | null>(inicial?.comprovante ?? null);
@@ -76,6 +80,8 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
         ...v,
         valor: valorNum,
         data_pagamento: v.pago ? (v.data_pagamento || hojeISO()) : null,
+        prazo: v.prazo || null,
+        pagamento_informado: v.pago ? false : (inicial?.pagamento_informado ?? false),
         checklist_feito: feitos.filter((f) => itens.includes(f)),
         comprovante: caminhoComp,
       };
@@ -93,7 +99,7 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
       if (texto) setAviso(texto);
       else aoSalvar();
     } catch (err: any) {
-      avisar(`Erro: ${err.message}. Rodou o atualizacao-11.sql?`, true);
+      avisar(`Erro: ${err.message}. Rodou o atualizacao-15.sql?`, true);
     } finally {
       setSalvando(false);
     }
@@ -124,7 +130,20 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
 
   return (
     <form className="adm-item mudou" onSubmit={salvar}>
-      <h3>{inicial?.id ? 'Editar serviço' : 'Novo serviço'}</h3>
+      <h3>{inicial?.id ? <>Pedido <span className="codigo">{inicial.codigo || `#${inicial.id}`}</span></> : 'Novo pedido'}</h3>
+
+      {inicial?.pagamento_informado && !v.pago && (
+        <div className="pag-informado">
+          <strong>💰 O cliente informou o pagamento (a conferir)</strong>
+          <div className="adm-linha">
+            {inicial.comprovante_cliente && (
+              <button type="button" className="adm-btn peq" onClick={async () => { try { window.open(await linkEnvio(inicial.comprovante_cliente!), '_blank', 'noopener'); } catch (e: any) { avisar(e.message, true); } }}>Ver comprovante</button>
+            )}
+            <button type="button" className="adm-btn pri peq" onClick={() => setV((x) => ({ ...x, pago: true, data_pagamento: hojeISO() }))}>Confirmar pagamento</button>
+          </div>
+          <span className="adm-dica" style={{ margin: 0 }}>Depois de confirmar, clique em Salvar.</span>
+        </div>
+      )}
       <div className="adm-grade">
         <label>
           Cliente
@@ -146,7 +165,9 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
             {STATUS.map((s) => <option key={s.valor} value={s.valor}>{s.rotulo}</option>)}
           </select>
         </label>
+        <label>Prazo de entrega (opcional)<input type="date" value={v.prazo || ''} onChange={(e) => mudar('prazo', e.target.value)} /></label>
         <label>Nº do processo (opcional)<input value={v.processo} onChange={(e) => mudar('processo', e.target.value)} /></label>
+        <label className="adm-check"><input type="checkbox" checked={v.visivel_cliente} onChange={(e) => mudar('visivel_cliente', e.target.checked)} /> Aparece na área do cliente</label>
         <label className="adm-check"><input type="checkbox" checked={v.pago} onChange={(e) => mudar('pago', e.target.checked)} /> Já foi pago</label>
         {v.pago && (
           <>
@@ -188,6 +209,10 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
           ))}
         </div>
       )}
+
+      {inicial?.id && <EnviosPedido pedidoId={inicial.id} avisar={avisar} />}
+      {inicial?.id && <NotasPedido pedidoId={inicial.id} avisar={avisar} />}
+      {!inicial?.id && <p className="adm-dica" style={{ margin: 0 }}>Depois de salvar, abra o pedido para adicionar observações internas, texto, ditado ou áudio.</p>}
 
       <div className="adm-linha">
         <button className="adm-btn pri" type="submit" disabled={salvando}>{salvando ? 'Salvando…' : 'Salvar'}</button>
