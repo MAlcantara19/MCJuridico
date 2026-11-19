@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import PainelMes from './PainelMes';
-import { brl, dataBR, hojeISO, intervalo, somarDias, type Atendimento, type Compromisso } from '@/lib/gestao';
+import { brl, dataBR, diasUteisEntre, hojeISO, intervalo, somarDias, type Atendimento, type Compromisso } from '@/lib/gestao';
 
 type Numeros = { visita: number; whatsapp: number; assistente: number; novas: number; total: number };
 
@@ -11,22 +11,30 @@ export default function AbaResumo({ nome, irPara }: { nome: string; irPara: (aba
   const [n, setN] = useState<Numeros | null>(null);
   const [agenda, setAgenda] = useState<Compromisso[]>([]);
   const [cliquesTop, setCliquesTop] = useState<[string, number][]>([]);
-  const [mes, setMes] = useState<{ faturado: number; aReceber: number } | null>(null);
+  const [mes, setMes] = useState<{ faturado: number; aReceber: number; emAberto: number } | null>(null);
+  const [meta, setMeta] = useState(0);
+  const [editandoMeta, setEditandoMeta] = useState(false);
+  const [metaTexto, setMetaTexto] = useState('');
 
   // Agenda de hoje (e atrasados) + dinheiro do mês
   useEffect(() => {
     (async () => {
       const hoje = hojeISO();
       const [ini, fim] = intervalo('mes');
-      const [g, a] = await Promise.all([
+      const [g, a, m] = await Promise.all([
         supabase().from('agenda').select('*').eq('feito', false).lte('data', somarDias(hoje, 1)).order('data').order('hora', { nullsFirst: true }).limit(8),
-        supabase().from('atendimentos').select('valor, status, pago, data').eq('status', 'concluido'),
+        supabase().from('atendimentos').select('valor, status, pago, data').neq('status', 'cancelado'),
+        supabase().from('configuracoes').select('meta_mensal').eq('id', 1).maybeSingle(),
       ]);
+      setMeta(Number((m.data as any)?.meta_mensal) || 0);
       setAgenda((g.data as Compromisso[]) ?? []);
-      const lista = (a.data as Atendimento[]) ?? [];
+      const todos = (a.data as Atendimento[]) ?? [];
+      const lista = todos.filter((x) => x.status === 'concluido');
       setMes({
         faturado: lista.filter((x) => x.data >= ini && x.data <= fim).reduce((s, x) => s + (Number(x.valor) || 0), 0),
         aReceber: lista.filter((x) => !x.pago).reduce((s, x) => s + (Number(x.valor) || 0), 0),
+        // pedidos do mês ainda não concluídos (o que pode entrar até o fim do mês)
+        emAberto: todos.filter((x) => x.status !== 'concluido' && x.status !== 'orcamento' && x.data >= ini && x.data <= fim).reduce((s, x) => s + (Number(x.valor) || 0), 0),
       });
     })();
   }, []);
@@ -51,6 +59,25 @@ export default function AbaResumo({ nome, irPara }: { nome: string; irPara: (aba
       setN({ visita: v.count ?? 0, whatsapp: w.count ?? 0, assistente: a.count ?? 0, novas: novas.count ?? 0, total: total.count ?? 0 });
     })();
   }, []);
+
+  async function salvarMeta() {
+    const valor = Number(metaTexto.replace(/\./g, '').replace(',', '.')) || 0;
+    const { error } = await supabase().from('configuracoes').update({ meta_mensal: valor }).eq('id', 1);
+    if (error) return alert(`Erro: ${error.message}. Rodou o atualizacao-17.sql?`);
+    setMeta(valor);
+    setEditandoMeta(false);
+  }
+
+  // Progresso da meta e projeção pelo ritmo dos dias úteis
+  const [iniMes, fimMes] = intervalo('mes');
+  const hojeR = hojeISO();
+  const duPassados = Math.max(1, diasUteisEntre(somarDias(iniMes, -1), hojeR));
+  const duTotal = Math.max(1, diasUteisEntre(somarDias(iniMes, -1), fimMes));
+  const faturado = mes?.faturado ?? 0;
+  const pct = meta > 0 ? Math.min(100, (faturado / meta) * 100) : 0;
+  const projecao = (faturado / duPassados) * duTotal;
+  const falta = Math.max(0, meta - faturado);
+  const duRestantes = Math.max(0, duTotal - duPassados);
 
   const cartoes = n ? [
     { rotulo: 'Visitas', valor: n.visita, dica: 'pessoas que abriram o site' },
@@ -83,7 +110,27 @@ export default function AbaResumo({ nome, irPara }: { nome: string; irPara: (aba
             <span className="adm-dica" style={{ margin: 0 }}>Faturado este mês</span>
             <button className="adm-btn peq" onClick={() => irPara('financeiro')}>Financeiro</button>
           </div>
-          <strong className="numero">{brl(mes?.faturado ?? 0)}</strong>
+          <strong className="numero">{brl(faturado)}</strong>
+          {meta > 0 && !editandoMeta && (
+            <>
+              <div className="meta-barra" role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100} aria-label="Progresso da meta do mês">
+                <span style={{ width: `${pct}%`, background: pct >= 100 ? '#2e7d32' : undefined }} />
+              </div>
+              <span className="adm-dica" style={{ margin: 0 }}>
+                {pct >= 100 ? <strong style={{ color: '#2e7d32' }}>🎉 Meta de {brl(meta)} batida!</strong> : <>{Math.round(pct)}% da meta de {brl(meta)} · faltam {brl(falta)}{duRestantes ? ` (${brl(falta / duRestantes)} por dia útil)` : ''}</>}
+              </span>
+              {pct < 100 && faturado > 0 && <span className="adm-dica" style={{ margin: 0, color: projecao >= meta ? '#2e7d32' : '#e08a00' }}>No ritmo atual, o mês fecha em ≈ {brl(projecao)}{mes?.emAberto ? ` · ${brl(mes.emAberto)} em pedidos abertos` : ''}</span>}
+            </>
+          )}
+          {editandoMeta ? (
+            <span className="adm-linha" style={{ marginTop: 4 }}>
+              <input inputMode="decimal" value={metaTexto} onChange={(e) => setMetaTexto(e.target.value)} placeholder="Ex.: 5.000,00" aria-label="Meta do mês" style={{ maxWidth: 140 }} autoFocus onKeyDown={(e) => e.key === 'Enter' && salvarMeta()} />
+              <button className="adm-btn pri peq" onClick={salvarMeta}>Salvar</button>
+              <button className="adm-btn peq" onClick={() => setEditandoMeta(false)}>Cancelar</button>
+            </span>
+          ) : (
+            <button className="link-btn" style={{ justifySelf: 'start', textAlign: 'left' }} onClick={() => { setMetaTexto(meta ? String(meta).replace('.', ',') : ''); setEditandoMeta(true); }}>{meta ? '✏️ Mudar meta' : '🎯 Definir meta do mês'}</button>
+          )}
           <span className="adm-dica" style={{ margin: 0, color: mes?.aReceber ? '#b3261e' : undefined }}>{brl(mes?.aReceber ?? 0)} a receber no total</span>
         </div>
       </div>

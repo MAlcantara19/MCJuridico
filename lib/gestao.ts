@@ -44,7 +44,14 @@ function pascoa(ano: number) {
   const mes = Math.floor((h + l - 7 * m + 114) / 31), dia = ((h + l - 7 * m + 114) % 31) + 1;
   return `${ano}-${String(mes).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
 }
-const cacheFeriados: Record<number, Record<string, string>> = {};
+let cacheFeriados: Record<number, Record<string, string>> = {};
+// Feriados municipais cadastrados no painel (Agenda › Feriados). Recorrente = todo ano no mesmo dia.
+export type FeriadoExtra = { data: string; nome: string; cidade?: string; recorrente?: boolean; ativo?: boolean };
+let extras: FeriadoExtra[] = [];
+export function definirFeriadosExtras(lista: FeriadoExtra[]) {
+  extras = (lista ?? []).filter((f) => f && f.data && f.ativo !== false);
+  cacheFeriados = {};
+}
 export function feriados(ano: number) {
   if (cacheFeriados[ano]) return cacheFeriados[ano];
   const p = pascoa(ano);
@@ -56,6 +63,10 @@ export function feriados(ano: number) {
     [somarDias(p, -48)]: 'Carnaval', [somarDias(p, -47)]: 'Carnaval', [somarDias(p, -2)]: 'Sexta-feira Santa',
     [somarDias(p, 60)]: 'Corpus Christi',
   };
+  for (const e of extras) {
+    const d = e.recorrente !== false ? `${ano}-${e.data.slice(5, 10)}` : e.data.slice(0, 10);
+    if (d.startsWith(String(ano))) f[d] = f[d] ? `${f[d]} / ${e.nome}` : `${e.nome}${e.cidade ? ` (${e.cidade})` : ''}`;
+  }
   return (cacheFeriados[ano] = f);
 }
 export const nomeFeriado = (d: string) => feriados(Number(d.slice(0, 4)))[d] ?? '';
@@ -96,7 +107,33 @@ export type Atendimento = {
   checklist_feito?: string[] | null; comprovante?: string | null;
   codigo?: string | null; prazo?: string | null; visivel_cliente?: boolean | null;
   pagamento_informado?: boolean | null; comprovante_cliente?: string | null;
+  comarca?: string | null; deslocamento?: number | null;
 };
+
+// ---------- Deslocamento ----------
+type ConfigKm = { km_valor?: number | null; km_franquia?: number | null; km_ida_volta?: boolean | null };
+// Valor do deslocamento para uma distância (km pela estrada até a base).
+// Ex.: R$ 1,20/km acima de 15 km → 40 km = 25 × 1,20 = R$ 30,00
+export function valorDeslocamento(km: number | null | undefined, c: ConfigKm) {
+  const valor = Number(c.km_valor ?? 1.2) || 0;
+  const franquia = Number(c.km_franquia ?? 15) || 0;
+  const dist = (Number(km) || 0) * (c.km_ida_volta ? 2 : 1);
+  const cobrado = Math.max(0, dist - franquia * (c.km_ida_volta ? 2 : 1));
+  return { km: dist, cobrado, valor: Math.round(cobrado * valor * 100) / 100 };
+}
+// Distância em linha reta (km), usada quando a distância pela estrada ainda não foi calculada
+export function distanciaReta(a: { lat?: number | null; lng?: number | null }, b: { lat?: number | null; lng?: number | null }) {
+  const r = (g: number) => (g * Math.PI) / 180;
+  const dLat = r((b.lat ?? 0) - (a.lat ?? 0)), dLng = r((b.lng ?? 0) - (a.lng ?? 0));
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(r(a.lat ?? 0)) * Math.cos(r(b.lat ?? 0)) * Math.sin(dLng / 2) ** 2;
+  return 6371 * 2 * Math.asin(Math.sqrt(h));
+}
+// km da comarca: o da estrada (se calculado) ou a linha reta × 1,3 (estimativa)
+export function kmComarca(c: { km?: number | null; lat?: number | null; lng?: number | null }, base?: { lat?: number | null; lng?: number | null } | null) {
+  if (c.km != null && String(c.km) !== '') return { km: Number(c.km), estimado: false };
+  if (!base || c.lat == null || base.lat == null) return { km: 0, estimado: true };
+  return { km: Math.round(distanciaReta(base, c) * 1.3), estimado: true };
+}
 
 export type Despesa = {
   id: number; data: string; descricao: string; categoria: string; valor: number;
@@ -135,6 +172,7 @@ export function porExtenso(valor: number) {
 export type Compromisso = {
   id: number; titulo: string; tipo: string; data: string; hora: string | null; cliente_id: number | null;
   local: string; processo: string; observacoes: string; feito: boolean; criado_em: string;
+  lat?: number | null; lng?: number | null; lembrar_cliente?: boolean | null; lembrete_cliente_em?: string | null;
 };
 
 export const TIPOS_CLIENTE = [

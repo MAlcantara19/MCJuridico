@@ -8,6 +8,8 @@ import PaginaSimples from '@/components/site/PaginaSimples';
 import FormEscritorio from '@/components/site/FormEscritorio';
 import { ListaPrecos } from '@/components/site/Servicos';
 import MapaComarcas from '@/components/site/MapaComarcas';
+import Depoimentos from '@/components/site/Depoimentos';
+import { slugCidade } from '@/lib/cidades';
 
 export const dynamic = 'force-dynamic';
 
@@ -45,6 +47,9 @@ export default async function Escritorios() {
   const pacote = d.pacotes.find((p) => p.grupo === 'correspondente');
   const juridicos = d.categorias.filter((k) => k.modalidade !== 'presencial' && /jur/i.test(k.nome));
   const remotos = d.servicos.filter((s) => juridicos.some((k) => k.id === s.categoria_id)).slice(0, 6);
+  // Avaliações aprovadas com nota alta aparecem sozinhas aqui (as mais recentes primeiro)
+  const avaliacoes = d.depoimentos.filter((x) => (x.nota ?? 0) >= 4)
+    .sort((a, b) => (b.nota ?? 0) - (a.nota ?? 0) || String(b.criado_em ?? '').localeCompare(String(a.criado_em ?? ''))).slice(0, 6);
 
   return (
     <PaginaSimples config={c} classe={`estilo-${c.tema_estilo || 'classico'}`}>
@@ -114,9 +119,14 @@ export default async function Escritorios() {
         <section id="comarcas" className="secao">
           <div className="conteiner">
             <MapaComarcas comarcas={d.comarcas} config={c} />
+            <p className="nota" style={{ marginTop: 18 }}>
+              Páginas por cidade: {d.comarcas.map((x, i) => <span key={x.id}>{i ? ' · ' : ''}<Link href={`/advogados/${slugCidade(x.nome)}`}>{x.nome}</Link></span>)}
+            </p>
           </div>
         </section>
       )}
+
+      {avaliacoes.length > 0 && <Depoimentos depoimentos={avaliacoes} />}
 
       <section className="secao secao-sup">
         <div className="conteiner">

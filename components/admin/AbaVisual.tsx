@@ -4,6 +4,7 @@ import { useState } from 'react';
 import type { Config, Secao } from '@/lib/tipos';
 import { NOMES_SECOES, juntarSecoes } from '@/lib/tipos';
 import { enviarArquivo } from '@/lib/arquivos';
+import AssinaturaTela, { pngParaArquivo } from './AssinaturaTela';
 import Topo from '@/components/site/Topo';
 import { estiloMarca } from '@/components/site/PaginaSimples';
 
@@ -50,6 +51,7 @@ export default function AbaVisual({ config, salvar, avisar }: {
   // Garante que seções novas apareçam mesmo em bancos antigos
   const [secoes, setSecoes] = useState<Secao[]>(juntarSecoes(config.secoes));
   const [enviando, setEnviando] = useState('');
+  const [assinando, setAssinando] = useState(false);
 
   function mudar(campo: string, valor: string | boolean) { setV((x) => ({ ...x, [campo]: valor })); }
 
@@ -207,7 +209,13 @@ export default function AbaVisual({ config, salvar, avisar }: {
         <div style={{ display: 'grid', gap: 8, marginTop: 14 }}>
           <strong style={{ fontSize: '0.85rem' }}>✍️ Assinatura (aparece no recibo, orçamento e relatórios)</strong>
           {v.assinatura_url && <img src={v.assinatura_url} alt="Assinatura" className="adm-img" style={{ objectFit: 'contain', background: '#fff', height: 70, width: 220 }} />}
-          <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => subirImagem('assinatura_url', e.target.files?.[0])} />
+          {assinando
+            ? <AssinaturaTela aoConfirmar={(png) => { setAssinando(false); subirImagem('assinatura_url', pngParaArquivo(png)); }} aoCancelar={() => setAssinando(false)} />
+            : <div className="adm-linha">
+                <button type="button" className="adm-btn" onClick={() => setAssinando(true)}>✍️ Assinar na tela com o dedo</button>
+                <span className="adm-dica" style={{ margin: 0 }}>ou envie uma imagem:</span>
+                <input type="file" accept="image/png,image/jpeg,image/webp" onChange={(e) => subirImagem('assinatura_url', e.target.files?.[0])} />
+              </div>}
           {enviando === 'assinatura_url' && <span className="adm-dica">Enviando…</span>}
           {v.assinatura_url && <button className="adm-btn peq perigo" onClick={() => mudar('assinatura_url', '')}>Remover assinatura</button>}
           <span className="adm-dica" style={{ margin: 0 }}>Dica: assine com caneta preta numa folha branca, fotografe de perto e recorte. PNG com fundo transparente fica ainda melhor.</span>

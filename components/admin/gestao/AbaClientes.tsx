@@ -9,6 +9,7 @@ import {
 } from '@/lib/gestao';
 import FormAtendimento from './FormAtendimento';
 import Orcamento from './Orcamento';
+import Contrato from './Contrato';
 import Recibo from './Recibo';
 import TabelaClientes from './TabelaClientes';
 import { AcessoCliente, Etiquetas, HorasCliente } from './ExtrasCliente';
@@ -129,6 +130,7 @@ function FichaCliente({ id, config, navegar, clientes, servicos, avisar, voltar,
   const [relatorios, setRelatorios] = useState<RelatorioResumo[]>([]);
   const [orcamentos, setOrcamentos] = useState<OrcamentoResumo[]>([]);
   const [orcando, setOrcando] = useState(false);
+  const [contratando, setContratando] = useState(false);
   const [recibo, setRecibo] = useState<Atendimento | null>(null);
   const atual = clientes.find((c) => c.id === id);
   const [v, setV] = useState({ ...VAZIO, ...(atual ?? {}) });
@@ -262,7 +264,8 @@ function FichaCliente({ id, config, navegar, clientes, servicos, avisar, voltar,
 
       {id && atual && (
         <div className="adm-linha nao-imprimir">
-          <button className="adm-btn pri" onClick={() => setOrcando(true)}>Gerar orçamento</button>
+          <button className="adm-btn pri" onClick={() => { setContratando(false); setOrcando(true); }}>Gerar orçamento</button>
+          <button className="adm-btn" onClick={() => { setOrcando(false); setContratando(true); }}>📄 Contrato de pacote</button>
           <button className="adm-btn" onClick={() => navegar.novoRelatorio(id)}>Nova diligência / relatório</button>
           {v.telefone && (
             <a
@@ -288,7 +291,11 @@ function FichaCliente({ id, config, navegar, clientes, servicos, avisar, voltar,
         <Orcamento cliente={{ ...atual, ...v } as Cliente} config={config} avisar={avisar} fechar={() => { setOrcando(false); carregar(); }} />
       )}
 
-      {id && !orcando && (
+      {id && atual && contratando && (
+        <Contrato cliente={{ ...atual, ...v } as Cliente} config={config} avisar={avisar} fechar={() => setContratando(false)} />
+      )}
+
+      {id && !orcando && !contratando && (
         <>
           <div className="adm-linha" style={{ justifyContent: 'space-between' }}>
             <h3 style={{ margin: 0 }}>Serviços deste cliente</h3>

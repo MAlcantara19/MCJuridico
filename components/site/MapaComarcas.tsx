@@ -7,6 +7,7 @@ import type { Comarca, Config } from '@/lib/tipos';
 import { linkWhats } from '@/lib/util';
 import { msgComarca } from '@/lib/mensagens';
 import { registrar } from '@/lib/estatisticas';
+import { brl, kmComarca, valorDeslocamento } from '@/lib/gestao';
 
 const TIPOS: Record<string, { rotulo: string; dica: string }> = {
   base: { rotulo: 'Onde estou', dica: 'Atendimento presencial no dia a dia' },
@@ -14,13 +15,8 @@ const TIPOS: Record<string, { rotulo: string; dica: string }> = {
   consulta: { rotulo: 'Sob consulta', dica: 'Verifique disponibilidade' },
 };
 
-// Distância em linha reta (km)
-function distancia(a: Comarca, b: Comarca) {
-  const r = (g: number) => (g * Math.PI) / 180;
-  const dLat = r((b.lat ?? 0) - (a.lat ?? 0)), dLng = r((b.lng ?? 0) - (a.lng ?? 0));
-  const h = Math.sin(dLat / 2) ** 2 + Math.cos(r(a.lat ?? 0)) * Math.cos(r(b.lat ?? 0)) * Math.sin(dLng / 2) ** 2;
-  return Math.round(6371 * 2 * Math.asin(Math.sqrt(h)));
-}
+// Distância até a base: pela estrada (se calculada no painel) ou estimada
+const distancia = (base: Comarca, c: Comarca) => Math.round(kmComarca(c, base).km);
 const esc = (t: string) => t.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 
 export default function MapaComarcas({ comarcas, config, titulo = true }: { comarcas: Comarca[]; config: Config; titulo?: boolean }) {
@@ -60,7 +56,8 @@ export default function MapaComarcas({ comarcas, config, titulo = true }: { coma
           iconAnchor: c.tipo === 'base' ? [15, 15] : [10, 10],
           popupAnchor: [0, -12],
         });
-        const km = base && c.id !== base.id ? `<span class="mapa-km">≈ ${distancia(base, c)} km de ${esc(base.nome)}</span>` : '';
+        const desl = base && c.id !== base.id && c.tipo === 'deslocamento' ? valorDeslocamento(distancia(base, c), config).valor : 0;
+        const km = base && c.id !== base.id ? `<span class="mapa-km">≈ ${distancia(base, c)} km de ${esc(base.nome)}${desl ? ` · deslocamento ${brl(desl)}` : ''}</span>` : '';
         const link = linkWhats(config.whatsapp, msgComarca({ comarca: c.nome, uf: c.uf, tipo: c.tipo }));
         const popup = `<div class="mapa-popup">
           <span class="mapa-etq mapa-etq-${c.tipo}">${esc(TIPOS[c.tipo]?.rotulo ?? '')}</span>
@@ -84,7 +81,7 @@ export default function MapaComarcas({ comarcas, config, titulo = true }: { coma
     })();
     return () => { cancelado = true; mapa.current?.remove(); mapa.current = null; marcadores.current = {}; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(lista.map((c) => [c.id, c.lat, c.lng, c.tipo, c.observacao, c.nome]))]);
+  }, [JSON.stringify(lista.map((c) => [c.id, c.lat, c.lng, c.tipo, c.observacao, c.nome, c.km])), config.km_valor, config.km_franquia, config.km_ida_volta]);
 
   function liberar() {
     if (livre || !mapa.current) return;

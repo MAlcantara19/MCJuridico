@@ -265,3 +265,26 @@ export function msgEscritorio(p: { cidade?: string; servico?: string }) {
     'Poderia me passar disponibilidade e valores? 😊',
   );
 }
+
+// Lembrete ao cliente, 1 dia útil antes (agenda ou prazo do pedido)
+export function msgLembreteCliente(p: { nome: string; titulo: string; data: string; hora?: string; local?: string; codigo?: string; documentos?: boolean; linkArea?: string }) {
+  return juntar(
+    ola(p.nome),
+    p.documentos ? 'Passando para lembrar que o prazo para os documentos está chegando: 📂' : 'Passando para lembrar do nosso compromisso: ⏰',
+    `📌 *${p.titulo}*${p.codigo ? ` (${p.codigo})` : ''}`,
+    topicos([`Data: ${p.data}`, p.hora && `Horário: ${p.hora}`, p.local && `Local: ${p.local}`]),
+    !!p.linkArea && `${p.documentos ? '📤 Você pode enviar os documentos pela sua área:' : '🔐 Acompanhe pela sua área:'}\n${p.linkArea}`,
+    'Qualquer dúvida, é só me chamar. 😊',
+  );
+}
+
+// Contrato de pacote mensal para aceite
+export function msgContrato(p: { nome: string; numero: string; pacote: string; valor: string; link: string }) {
+  return juntar(
+    ola(p.nome),
+    'Segue o contrato do seu pacote mensal para leitura e aceite: 📄',
+    `📦 *${p.pacote}*\n• Contrato nº ${p.numero}\n• Valor mensal: ${p.valor}`,
+    `🔗 Leia e aceite por aqui (leva 1 minuto):\n${p.link}`,
+    'Se preferir, pode responder esta mensagem com *ACEITO*. Qualquer dúvida, me chame! 😊',
+  );
+}

@@ -140,6 +140,34 @@ Rode `supabase/atualizacao-16.sql` e depois `npm install` (entrou o pacote do ma
 - **Cobrar inadimplentes** em lote (Financeiro), uma mensagem por cliente com o Pix do total
 - Página **/empresas** · pesquisa rápida de satisfação · modelo genérico para vender o site
 
+## Atualização 17
+
+1. Rode `supabase/atualizacao-17.sql` e depois `npm install` (entrou o pacote `web-push`).
+2. Para as notificações e o lembrete automático: copie as 4 linhas de `.env.notificacoes.local`
+   para Vercel › Settings › Environment Variables e faça Redeploy. No painel, em Master › Notificações,
+   cole o valor de `CRON_SECRET` em "Código do lembrete" e salve. (Troque `VAPID_CONTATO` pelo seu e-mail.)
+
+- **Deslocamento por km** (Site › Comarcas): R$ por km acima da franquia (padrão R$ 1,20 acima de 15 km), ida e volta opcional,
+  botão "Calcular km pela estrada". O valor aparece no mapa do site, nas páginas por cidade e é somado sozinho no pedido
+  (campo Comarca) e no orçamento ("+ Deslocamento até…").
+- **Feriados municipais** (Agenda › Feriados municipais): editáveis, contam nos prazos em dias úteis. Vieram cadastrados
+  15/01 e 29/06 (Paraíba do Sul) e 14/12 (Três Rios): **confira as datas** no calendário do TJRJ.
+- **Rota do dia** (Agenda): dias com 2+ compromissos com local mostram "🗺️ Rota do dia": mapa numerado saindo da base e trajeto no Google Maps.
+- **Lembrete ao cliente, 1 dia útil antes**: automático no celular de quem ligou os avisos (todo dia às 8h, `vercel.json`);
+  para os demais, a Agenda mostra a fila "Lembrar clientes" com a mensagem pronta no WhatsApp.
+- **Assinar na tela com o dedo**: no recibo ("✍️ Assinar na tela") e em Visual e layout. Pode guardar como assinatura padrão.
+- **Notificação no celular do cliente** quando a etapa do pedido muda (o cliente toca em "🔔 Receber avisos" na área dele;
+  no iPhone precisa instalar o ícone na tela de início).
+- **Avaliações com nota 4 ou 5** já aprovadas aparecem sozinhas em `/escritorios` e nas páginas por cidade.
+- **Páginas `/advogados` e `/advogados/<cidade>`** (ex.: `/advogados/vassouras`), geradas das comarcas, com SEO e no sitemap.
+- **Contrato de pacote mensal** (Clientes › ficha › "📄 Contrato de pacote"): PDF e link de aceite (`/contrato/<link>`) enviado
+  pelo WhatsApp; o aceite fica registrado com nome, data e hora.
+- **Meta mensal** no Resumo, com barra de progresso, quanto falta por dia útil e projeção do mês.
+- **Satisfação mês a mês** (gráfico no Resumo) e **alerta no topo** quando chega uma avaliação com nota 3 ou menos.
+- **Inadimplentes em Excel** (Financeiro › Cobrar inadimplentes › "📊 Baixar em Excel"), com resumo por cliente e pedidos.
+- **Busca rápida** no painel (botão 🔍 ou Ctrl+K): clientes, código do pedido, processo, telefone e agenda.
+- O botão Voltar do celular volta para a aba anterior do painel (a aba fica no endereço, ex.: `/admin#agenda`).
+
 ## Onde mexer
 
 - Pelo painel `/admin` (sem código): textos, marca, cores, fonte, tema, logo, foto,

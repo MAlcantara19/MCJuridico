@@ -3,7 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { Config } from '@/lib/tipos';
 import { supabase } from '@/lib/supabase';
-import { brl, dataBR, hojeISO, pixDe, somarDias, whatsDoTelefone, type Cliente } from '@/lib/gestao';
+import { brl, dataBR, hojeISO, kmComarca, pixDe, somarDias, valorDeslocamento, whatsDoTelefone, type Cliente } from '@/lib/gestao';
+import type { Comarca } from '@/lib/tipos';
 import { msgOrcamento } from '@/lib/mensagens';
 import QRCode from 'qrcode';
 
@@ -23,6 +24,7 @@ export default function Orcamento({ cliente, config, avisar, fechar }: { cliente
   const [validade, setValidade] = useState('7');
   const [obs, setObs] = useState('');
   const [busca, setBusca] = useState('');
+  const [comarcas, setComarcas] = useState<Comarca[]>([]);
   const numero = useMemo(() => `${new Date().getFullYear()}-${String(Date.now()).slice(-5)}`, []);
 
   useEffect(() => {
@@ -35,6 +37,8 @@ export default function Orcamento({ cliente, config, avisar, fechar }: { cliente
       setTabela(((s.data ?? []) as { nome: string; preco: string; categoria_id: number }[])
         .filter((x) => !/inclus/i.test(x.preco))
         .map((x) => ({ area: cats.find((k) => k.id === x.categoria_id)?.nome ?? 'Outros', nome: x.nome, preco: x.preco })));
+      const k = await supabase().from('comarcas').select('*').eq('ativo', true).order('ordem');
+      setComarcas((k.data as Comarca[]) ?? []);
     })();
   }, []);
 
@@ -113,7 +117,22 @@ export default function Orcamento({ cliente, config, avisar, fechar }: { cliente
             );
           })}
         </div>
-        <button className="adm-btn peq" style={{ justifySelf: 'start' }} onClick={() => setItens((l) => [...l, { nome: 'Outro serviço', qtd: 1, valor: 0 }])}>+ Item avulso</button>
+        <div className="adm-linha">
+          <button className="adm-btn peq" onClick={() => setItens((l) => [...l, { nome: 'Outro serviço', qtd: 1, valor: 0 }])}>+ Item avulso</button>
+          {comarcas.some((c) => c.tipo !== 'base') && (
+            <select aria-label="Adicionar deslocamento" value="" style={{ maxWidth: 280 }} onChange={(e) => {
+              const c = comarcas.find((x) => String(x.id) === e.target.value);
+              if (!c) return;
+              const base = comarcas.find((x) => x.tipo === 'base');
+              const d = valorDeslocamento(kmComarca(c, base).km, config);
+              if (!d.valor) return avisar(`${c.nome} fica dentro da franquia: sem custo de deslocamento.`);
+              setItens((l) => [...l.filter((i) => !i.nome.startsWith('Deslocamento')), { nome: `Deslocamento até ${c.nome} (${Math.round(d.km)} km)`, qtd: 1, valor: d.valor }]);
+            }}>
+              <option value="">🚗 + Deslocamento até…</option>
+              {comarcas.filter((c) => c.tipo !== 'base').map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+            </select>
+          )}
+        </div>
 
         {itens.length > 0 && (
           <div className="adm-lista">

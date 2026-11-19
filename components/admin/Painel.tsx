@@ -22,6 +22,8 @@ import AbaClientes from './gestao/AbaClientes';
 import AbaFinanceiro from './gestao/AbaFinanceiro';
 import AbaAgenda from './gestao/AbaAgenda';
 import BotaoInstalar from './BotaoInstalar';
+import BuscaRapida from './BuscaRapida';
+import { definirFeriadosExtras, type FeriadoExtra } from '@/lib/gestao';
 
 type Perfil = { email: string; nome: string; papel: 'master' | 'admin' };
 
@@ -54,7 +56,20 @@ export default function Painel() {
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [semAcesso, setSemAcesso] = useState(false);
   const [config, setConfig] = useState<Config | null>(null);
-  const [aba, setAba] = useState('resumo');
+  const [aba, setAbaEstado] = useState('resumo');
+  // A aba fica no endereço (#agenda): o botão Voltar do celular volta para a aba anterior
+  // e um link/atalho abre direto na aba certa.
+  function setAba(nova: string) {
+    setAbaEstado(nova);
+    if (typeof window !== 'undefined' && window.location.hash !== `#${nova}`) history.pushState(null, '', `#${nova}`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  useEffect(() => {
+    const ler = () => { const h = window.location.hash.slice(1); if (h && ABAS.some((a) => a.id === h && !a.grupo)) setAbaEstado(h); };
+    ler();
+    window.addEventListener('popstate', ler);
+    return () => window.removeEventListener('popstate', ler);
+  }, []);
   const [relatorioId, setRelatorioId] = useState<number | null>(null);
   const [relatorioCliente, setRelatorioCliente] = useState<number | null>(null);
   const [clienteAberto, setClienteAberto] = useState<number | null>(null);
@@ -93,6 +108,9 @@ export default function Painel() {
       setSemAcesso(false);
       setPerfil(data as Perfil);
       try { localStorage.setItem('mc-admin', '1'); } catch {} // não conta suas visitas no Resumo
+      // Feriados municipais entram no cálculo de dias úteis de todas as telas
+      const f = await supabase().from('feriados').select('data, nome, cidade, recorrente, ativo');
+      if (!f.error) definirFeriadosExtras((f.data as FeriadoExtra[]) ?? []);
       const c = await supabase().from('configuracoes').select('*').eq('id', 1).single();
       if (c.data) setConfig(c.data as Config);
     })();
@@ -219,6 +237,7 @@ export default function Painel() {
           <small>{perfil.nome || perfil.email} · {perfil.papel === 'master' ? 'Master' : 'Administradora'}</small>
         </div>
         <div className="adm-linha">
+          <BuscaRapida irPara={setAba} abrirCliente={(id) => { setClienteAberto(id); setAba('clientes'); }} />
           <BotaoInstalar />
           <a className="adm-btn peq" style={{ color: '#fff', borderColor: 'rgba(255,255,255,.3)' }} href="/" target="_blank" rel="noopener noreferrer">Ver site</a>
           <button className="adm-btn peq" style={{ color: '#fff', borderColor: 'rgba(255,255,255,.3)' }} onClick={() => setTrocandoSenha(true)}>Trocar senha</button>
@@ -232,7 +251,7 @@ export default function Painel() {
           {abas.map((a) => (
             a.grupo
               ? <span key={a.id} className="adm-grupo">{a.nome}</span>
-              : <button key={a.id} className={`adm-aba${aba === a.id ? ' ativa' : ''}`} onClick={() => { setAba(a.id); if (a.id === 'relatorio') { setRelatorioId(null); setRelatorioCliente(null); } if (a.id === 'clientes') setClienteAberto(null); }}>{a.nome}</button>
+              : <button key={a.id} aria-current={aba === a.id ? 'page' : undefined} className={`adm-aba${aba === a.id ? ' ativa' : ''}`} onClick={() => { setAba(a.id); if (a.id === 'relatorio') { setRelatorioId(null); setRelatorioCliente(null); } if (a.id === 'clientes') setClienteAberto(null); }}>{a.nome}</button>
           ))}
         </nav>
 

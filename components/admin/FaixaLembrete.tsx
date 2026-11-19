@@ -10,6 +10,7 @@ export default function FaixaLembrete({ irPara }: { irPara: (aba: string) => voi
   const [itens, setItens] = useState<Item[] | null>(null);
   const [fechada, setFechada] = useState(false);
   const [novidades, setNovidades] = useState({ envios: 0, conferir: 0 });
+  const [baixas, setBaixas] = useState<{ id: number; nome: string; nota: number; pedido?: string }[]>([]);
 
   useEffect(() => {
     supabase().from('agenda').select('data, titulo, hora').eq('feito', false).lte('data', somarDias(hojeISO(), 1)).order('data').order('hora', { nullsFirst: true })
@@ -20,10 +21,28 @@ export default function FaixaLembrete({ irPara }: { irPara: (aba: string) => voi
       supabase().from('envios').select('id', { count: 'exact', head: true }).eq('visto', false),
       supabase().from('atendimentos').select('id', { count: 'exact', head: true }).eq('pagamento_informado', true).eq('pago', false),
     ]).then(([e, p]) => setNovidades({ envios: e.count ?? 0, conferir: p.count ?? 0 }));
+    // Avaliação com nota baixa ainda não vista (atualização 17)
+    supabase().from('depoimentos').select('id, nome, nota, pedido').eq('origem', 'avaliacao').eq('lida', false).lte('nota', 3).order('id', { ascending: false })
+      .then(({ data, error }) => { if (!error) setBaixas((data as any[]) ?? []); });
   }, []);
 
+  async function verBaixas() {
+    await supabase().from('depoimentos').update({ lida: true }).in('id', baixas.map((b) => b.id));
+    setBaixas([]);
+    irPara('depoimentos');
+  }
+  const alertaNota = baixas.length > 0 && (
+    <div className="faixa-lembrete alerta" role="alert">
+      <button className="faixa-texto" onClick={verBaixas}>
+        ⚠️ <strong>{baixas.length > 1 ? `${baixas.length} avaliações com nota baixa` : `Nota baixa: ${'★'.repeat(baixas[0].nota)} de ${baixas[0].nome || 'cliente'}${baixas[0].pedido ? ` (${baixas[0].pedido})` : ''}`}</strong>
+        {' '}· vale ligar e entender o que aconteceu
+        <span className="faixa-ver">Ver avaliação →</span>
+      </button>
+    </div>
+  );
+
   const temNovidade = novidades.envios > 0 || novidades.conferir > 0;
-  if (!itens || (!itens.length && !temNovidade) || fechada) return null;
+  if (!itens || (!itens.length && !temNovidade) || fechada) return alertaNota || null;
   const hoje = hojeISO();
   const atrasados = itens.filter((i) => i.data < hoje).length;
   const deHoje = itens.filter((i) => i.data === hoje);
@@ -31,6 +50,8 @@ export default function FaixaLembrete({ irPara }: { irPara: (aba: string) => voi
   const proximo = deHoje.find((i) => i.hora) ?? deHoje[0];
 
   return (
+    <>
+    {alertaNota}
     <div className={`faixa-lembrete${atrasados ? ' alerta' : ''}`} role="status">
       <button className="faixa-texto" onClick={() => irPara('agenda')}>
         📅 {atrasados > 0 && <strong>{atrasados} atrasado{atrasados > 1 ? 's' : ''} · </strong>}
@@ -42,5 +63,6 @@ export default function FaixaLembrete({ irPara }: { irPara: (aba: string) => voi
       </button>
       <button className="faixa-fechar" aria-label="Esconder até amanhã" onClick={() => { setFechada(true); try { sessionStorage.setItem('mc-faixa', hoje); } catch {} }}>×</button>
     </div>
+    </>
   );
 }

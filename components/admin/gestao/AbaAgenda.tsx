@@ -3,9 +3,12 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { supabase } from '@/lib/supabase';
 import { combina } from '@/lib/util';
-import { COR_AGENDA, TIPOS_AGENDA, dataBR, diaSemana, hojeISO, rotulo, somarDias, type Compromisso } from '@/lib/gestao';
+import { COR_AGENDA, TIPOS_AGENDA, dataBR, diaSemana, ehDiaUtil, hojeISO, nomeFeriado, rotulo, somarDias, type Compromisso } from '@/lib/gestao';
 import { useBase } from './useBase';
 import AgendaCelular from './AgendaCelular';
+import Feriados from './Feriados';
+import RotaDia from './RotaDia';
+import LembretesClientes from './LembretesClientes';
 
 type Aviso = (m: string, e?: boolean) => void;
 type Visao = 'pendentes' | 'hoje' | 'semana' | 'feitos';
@@ -16,12 +19,15 @@ export default function AbaAgenda({ avisar }: { avisar: Aviso }) {
   const [visao, setVisao] = useState<Visao>('pendentes');
   const [busca, setBusca] = useState('');
   const [editando, setEditando] = useState<Partial<Compromisso> | null>(null);
+  const [rota, setRota] = useState<string | null>(null);
+  const [versao, setVersao] = useState(0);
 
   async function carregar() {
     const { data, error } = await supabase().from('agenda').select('*')
       .gte('data', somarDias(hojeISO(), -120)).order('data').order('hora', { nullsFirst: true });
     if (error) return avisar(`Erro: ${error.message}. Rodou o atualizacao-06.sql?`, true);
     setItens((data as Compromisso[]) ?? []);
+    setVersao((n) => n + 1);
   }
   useEffect(() => { carregar(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -63,7 +69,12 @@ export default function AbaAgenda({ avisar }: { avisar: Aviso }) {
         <p className="adm-sub">Prazos, diligências e audiências. Marque como feito quando terminar.</p>
       </div>
 
-      <AgendaCelular avisar={avisar} />
+      <div className="adm-linha">
+        <AgendaCelular avisar={avisar} />
+        <Feriados avisar={avisar} aoMudar={() => setVersao((n) => n + 1)} />
+      </div>
+
+      <LembretesClientes clientes={clientes} versao={versao} />
 
       <div className="adm-linha" aria-label="Legenda de cores">
         {TIPOS_AGENDA.map((t) => (
@@ -99,7 +110,16 @@ export default function AbaAgenda({ avisar }: { avisar: Aviso }) {
 
       {Object.entries(grupos).map(([dia, lista]) => (
         <div key={dia} style={{ display: 'grid', gap: 8 }}>
-          <h3 className={`agenda-dia${dia < hoje && visao !== 'feitos' ? ' atrasado' : ''}`}>{rotuloDia(dia)}</h3>
+          <div className="adm-linha" style={{ justifyContent: 'space-between' }}>
+            <h3 className={`agenda-dia${dia < hoje && visao !== 'feitos' ? ' atrasado' : ''}`}>
+              {rotuloDia(dia)}
+              {!ehDiaUtil(dia) && nomeFeriado(dia) && <small className="agenda-feriado"> · 🎉 {nomeFeriado(dia)}</small>}
+            </h3>
+            {visao !== 'feitos' && lista.filter((i) => !i.feito && i.local?.trim()).length >= 2 && (
+              <button className="adm-btn peq" onClick={() => setRota(rota === dia ? null : dia)}>🗺️ Rota do dia ({lista.filter((i) => !i.feito && i.local?.trim()).length})</button>
+            )}
+          </div>
+          {rota === dia && <RotaDia dia={dia} itens={lista.filter((i) => !i.feito && i.local?.trim())} avisar={avisar} fechar={() => setRota(null)} />}
           {lista.map((i) => (
             <div key={i.id} className={`adm-item agenda-item${i.feito ? ' feito' : ''}`} style={{ borderLeft: `5px solid ${(COR_AGENDA[i.tipo] ?? COR_AGENDA.outro).cor}` }}>
               <input type="checkbox" checked={i.feito} onChange={() => alternarFeito(i)} aria-label={`Marcar ${i.titulo} como feito`} />
@@ -127,12 +147,16 @@ function FormCompromisso({ inicial, clientes, avisar, aoSalvar, aoCancelar }: {
     titulo: inicial.titulo ?? '', tipo: inicial.tipo ?? 'prazo', data: inicial.data ?? hojeISO(),
     hora: inicial.hora?.slice(0, 5) ?? '', cliente_id: inicial.cliente_id ?? null,
     local: inicial.local ?? '', processo: inicial.processo ?? '', observacoes: inicial.observacoes ?? '',
+    lembrar_cliente: inicial.lembrar_cliente ?? true,
   });
   const mudar = (c: string, x: any) => setV((o) => ({ ...o, [c]: x }));
 
   async function salvar(e: FormEvent) {
     e.preventDefault();
-    const dados = { ...v, hora: v.hora || null };
+    const dados: Record<string, unknown> = { ...v, hora: v.hora || null };
+    // Mudou o local ou a data: a rota recalcula a posição e o lembrete pode sair de novo
+    if (!inicial.id || (inicial.local ?? '') !== v.local) { dados.lat = null; dados.lng = null; }
+    if (inicial.id && inicial.data !== v.data) dados.lembrete_cliente_em = null;
     const r = inicial.id
       ? await supabase().from('agenda').update(dados).eq('id', inicial.id)
       : await supabase().from('agenda').insert(dados);
@@ -170,6 +194,11 @@ function FormCompromisso({ inicial, clientes, avisar, aoSalvar, aoCancelar }: {
         </label>
         <label>Local<input value={v.local} onChange={(e) => mudar('local', e.target.value)} placeholder="Ex.: Fórum de Três Rios" /></label>
         <label>Nº do processo<input value={v.processo} onChange={(e) => mudar('processo', e.target.value)} /></label>
+        {v.cliente_id && (
+          <label className="adm-check" style={{ gridColumn: '1 / -1' }}>
+            <input type="checkbox" checked={v.lembrar_cliente} onChange={(e) => mudar('lembrar_cliente', e.target.checked)} /> 🔔 Lembrar o cliente 1 dia útil antes (no celular dele, se ativou, ou pelo WhatsApp aqui na agenda)
+          </label>
+        )}
         <label style={{ gridColumn: '1 / -1' }}>Anotações<textarea value={v.observacoes} onChange={(e) => mudar('observacoes', e.target.value)} /></label>
       </div>
       <div className="adm-linha">

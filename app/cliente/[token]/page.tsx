@@ -24,5 +24,5 @@ export default async function Pagina({ params }: { params: Promise<{ token: stri
   const { token } = await params;
   const d = await carregarDados();
   if (!d) return null;
-  return <AreaCliente token={token} config={d.config} />;
+  return <AreaCliente token={token} config={d.config} feriados={d.feriados} />;
 }

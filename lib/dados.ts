@@ -5,7 +5,7 @@ import type { Dados } from './tipos';
 
 export const carregarDados = cache(async (): Promise<Dados | null> => {
   const sb = supabaseServidor();
-  const [config, categorias, servicos, pacotes, formacoes, documentos, perguntas, depoimentos, comarcas] = await Promise.all([
+  const [config, categorias, servicos, pacotes, formacoes, documentos, perguntas, depoimentos, comarcas, feriados] = await Promise.all([
     sb.from('configuracoes').select('*').eq('id', 1).maybeSingle(),
     sb.from('categorias').select('*').eq('ativo', true).order('ordem'),
     sb.from('servicos').select('*').eq('ativo', true).order('ordem'),
@@ -15,6 +15,7 @@ export const carregarDados = cache(async (): Promise<Dados | null> => {
     sb.from('perguntas').select('*').eq('ativo', true).order('ordem'),
     sb.from('depoimentos').select('*').eq('ativo', true).order('ordem'),
     sb.from('comarcas').select('*').eq('ativo', true).order('ordem'),
+    sb.from('feriados').select('data, nome, cidade, recorrente').eq('ativo', true),
   ]);
   if (!config.data) return null;
   return {
@@ -27,5 +28,6 @@ export const carregarDados = cache(async (): Promise<Dados | null> => {
     perguntas: perguntas.data ?? [],
     depoimentos: depoimentos.data ?? [], // se a tabela ainda não existir, fica vazio
     comarcas: comarcas.data ?? [],
+    feriados: feriados.data ?? [],
   };
 });

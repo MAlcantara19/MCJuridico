@@ -7,7 +7,7 @@ import { supabase } from '@/lib/supabase';
 const TABELAS = [
   'configuracoes', 'categorias', 'servicos', 'pacotes', 'formacoes', 'documentos', 'perguntas', 'depoimentos',
   'solicitacoes', 'clientes', 'atendimentos', 'agenda', 'relatorios', 'orcamentos', 'despesas', 'respostas',
-  'arquivos_privados', 'notas_pedido', 'horas', 'envios', 'comarcas', 'historico_pedido', 'perfis',
+  'arquivos_privados', 'notas_pedido', 'horas', 'envios', 'comarcas', 'historico_pedido', 'feriados', 'contratos', 'perfis',
 ];
 
 // Só a "cara" do site, sem dados de clientes: serve de modelo para montar o site de outro profissional

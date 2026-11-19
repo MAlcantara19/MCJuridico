@@ -10,7 +10,14 @@ import NotasPedido from './NotasPedido';
 import EnviosPedido from './EnviosPedido';
 import HistoricoPedido from './HistoricoPedido';
 import { msgPedirDocumentos, msgStatus } from '@/lib/mensagens';
-import { FORMAS_PAGAMENTO, STATUS, brl, dataBR, ehDiaUtil, hojeISO, nomeFeriado, somarDiasUteis, whatsDoTelefone, type Atendimento, type Cliente } from '@/lib/gestao';
+import { FORMAS_PAGAMENTO, STATUS, brl, dataBR, ehDiaUtil, hojeISO, kmComarca, nomeFeriado, somarDiasUteis, valorDeslocamento, whatsDoTelefone, type Atendimento, type Cliente } from '@/lib/gestao';
+import { notificarCliente } from '@/lib/push';
+import type { Comarca } from '@/lib/tipos';
+
+const TITULO_ETAPA: Record<string, string> = {
+  orcamento: '📝 Orçamento pronto', aguardando_docs: '📂 Aguardando seus documentos', a_fazer: '📌 Pedido recebido',
+  andamento: '⚙️ Pedido em andamento', concluido: '✅ Pedido concluído', cancelado: 'Pedido cancelado',
+};
 
 type Props = {
   inicial?: Partial<Atendimento>;
@@ -35,7 +42,12 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
     forma_pagamento: inicial?.forma_pagamento ?? 'Pix',
     prazo: inicial?.prazo ?? '',
     visivel_cliente: inicial?.visivel_cliente ?? true,
+    comarca: inicial?.comarca ?? '',
+    deslocamento: inicial?.deslocamento ? String(inicial.deslocamento) : '',
   });
+  const [comarcas, setComarcas] = useState<Comarca[]>([]);
+  const [km, setKm] = useState<{ km_valor?: number; km_franquia?: number; km_ida_volta?: boolean }>({});
+  const [push, setPush] = useState('');
   const [feitos, setFeitos] = useState<string[]>(inicial?.checklist_feito ?? []);
   const [comprovante, setComprovante] = useState<string | null>(inicial?.comprovante ?? null);
   const [arquivoComp, setArquivoComp] = useState<File | null>(null);
@@ -60,7 +72,13 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
       setChecklists(mapa);
       setPrazos(dias);
     });
+    // Comarcas e regra do deslocamento (R$ por km acima da franquia)
+    supabase().from('comarcas').select('*').eq('ativo', true).order('ordem').then(({ data }) => setComarcas((data as Comarca[]) ?? []));
+    supabase().from('configuracoes').select('km_valor, km_franquia, km_ida_volta').eq('id', 1).maybeSingle().then(({ data }) => setKm((data as any) ?? {}));
   }, []);
+  const baseComarca = comarcas.find((c) => c.tipo === 'base');
+  const comarcaSel = comarcas.find((c) => c.nome === v.comarca);
+  const sugestaoDesl = comarcaSel && comarcaSel.tipo !== 'base' ? valorDeslocamento(kmComarca(comarcaSel, baseComarca).km, km) : null;
 
   const itens = linhas(checklists[v.servico] || '');
   const faltando = itens.filter((i) => !feitos.includes(i));
@@ -71,7 +89,22 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
   function escolherServico(nome: string) {
     setV((x) => ({ ...x, servico: nome, prazo: !x.prazo && prazos[nome] ? somarDiasUteis(x.data || hojeISO(), prazos[nome]) : x.prazo }));
   }
-  const valorNum = Number(String(v.valor).replace(/\./g, '').replace(',', '.')) || 0;
+  const numero = (t: string) => Number(String(t).replace(/\./g, '').replace(',', '.')) || 0;
+  const valorNum = numero(v.valor);
+  const deslNum = numero(v.deslocamento);
+  function escolherComarca(nome: string) {
+    const c = comarcas.find((x) => x.nome === nome);
+    const d = c && c.tipo !== 'base' ? valorDeslocamento(kmComarca(c, baseComarca).km, km).valor : 0;
+    trocarDeslocamento(d, nome);
+  }
+  // O deslocamento entra no valor do pedido (o valor é sempre o total cobrado)
+  function trocarDeslocamento(novo: number, comarca?: string) {
+    const fmt = (n: number) => n.toFixed(2).replace('.', ',');
+    setV((x) => {
+      const antes = numero(x.deslocamento), total = numero(x.valor) - antes + novo;
+      return { ...x, comarca: comarca ?? x.comarca, deslocamento: novo ? fmt(novo) : '', valor: total > 0 ? fmt(total) : '' };
+    });
+  }
 
   function pedirDocumentos() {
     if (!cliente?.telefone) return avisar('Cadastre o WhatsApp do cliente para pedir os documentos.', true);
@@ -95,6 +128,7 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
       const dados = {
         ...v,
         valor: valorNum,
+        deslocamento: deslNum,
         data_pagamento: v.pago ? (v.data_pagamento || hojeISO()) : null,
         prazo: v.prazo || null,
         pagamento_informado: v.pago ? false : (inicial?.pagamento_informado ?? false),
@@ -106,6 +140,19 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
         : await supabase().from('atendimentos').insert(dados).select('codigo').single();
       if (r.error) throw r.error;
       avisar('Serviço salvo');
+      const codigoSalvo = (r.data as any)?.codigo ?? '';
+
+      // Notificação automática no celular do cliente (se ele ativou na área dele)
+      const mudouEtapa = !inicial?.id || inicial.status !== v.status;
+      if (cliente && mudouEtapa && v.visivel_cliente && v.status !== 'cancelado' && cliente.acesso_token) {
+        notificarCliente({
+          cliente_id: cliente.id,
+          titulo: TITULO_ETAPA[v.status] ?? 'Novidade no seu pedido',
+          corpo: `${codigoSalvo ? `${codigoSalvo} · ` : ''}${v.servico}${v.status === 'concluido' && !v.pago && valorNum ? ` · ${brl(valorNum)} a pagar` : ''}`,
+          caminho: `/cliente/${cliente.acesso_token}`,
+          tag: `pedido-${codigoSalvo}`,
+        }).then((x) => { if (x.enviados) setPush(`🔔 Notificação enviada para ${x.enviados} aparelho${x.enviados > 1 ? 's' : ''} do cliente.`); });
+      }
 
       // Mudou a situação? Oferece avisar o cliente pelo WhatsApp.
       const mudouStatus = !inicial?.id || inicial.status !== v.status;
@@ -114,7 +161,7 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
         setAviso('sim');
       } else aoSalvar();
     } catch (err: any) {
-      avisar(`Erro: ${err.message}. Rodou o atualizacao-15.sql?`, true);
+      avisar(`Erro: ${err.message}. Rodou o atualizacao-17.sql?`, true);
     } finally {
       setSalvando(false);
     }
@@ -152,6 +199,7 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
       <div className="adm-item mudou">
         <h3>Avisar {cliente.nome}?</h3>
         <p className="adm-dica" style={{ margin: 0 }}>O serviço mudou para <strong>{rotuloStatus}</strong>. A mensagem já está pronta:</p>
+        {push && <p className="adm-dica" style={{ margin: 0, color: '#2e7d32' }}>{push}</p>}
         <div className="adm-linha">
           {cliente.acesso_token && <label className="adm-check"><input type="checkbox" checked={comArea} onChange={(e) => setComArea(e.target.checked)} /> Incluir link da área do cliente</label>}
           {salvo.status === 'concluido' && <label className="adm-check"><input type="checkbox" checked={comAvaliacao} onChange={(e) => setComAvaliacao(e.target.checked)} /> Pedir avaliação ⭐</label>}
@@ -216,6 +264,31 @@ export default function FormAtendimento({ inicial, clientes, servicos, avisar, a
           )}
         </label>
         <label>Nº do processo (opcional)<input value={v.processo} onChange={(e) => mudar('processo', e.target.value)} /></label>
+        {comarcas.length > 0 && (
+          <label>
+            Comarca (deslocamento)
+            <select value={v.comarca || ''} onChange={(e) => escolherComarca(e.target.value)}>
+              <option value="">Não informar</option>
+              {comarcas.map((c) => <option key={c.id} value={c.nome}>{c.nome}{c.tipo === 'base' ? ' (base)' : ''}</option>)}
+            </select>
+            {sugestaoDesl && (
+              <span className="adm-dica" style={{ margin: '4px 0 0' }}>
+                {sugestaoDesl.km} km{kmComarca(comarcaSel!, baseComarca).estimado ? ' (estimado)' : ''} · {sugestaoDesl.valor > 0 ? `deslocamento ${brl(sugestaoDesl.valor)}` : 'dentro da franquia, sem custo'}
+              </span>
+            )}
+          </label>
+        )}
+        {(v.comarca || deslNum > 0) && (
+          <label>
+            Deslocamento incluso (R$)
+            <input inputMode="decimal" defaultValue={v.deslocamento} key={v.comarca} onBlur={(e) => trocarDeslocamento(numero(e.target.value))} placeholder="0,00" />
+            {deslNum > 0 && (
+              <span className="adm-dica" style={{ margin: '4px 0 0' }}>
+                Já somado no valor: serviço {brl(valorNum - deslNum)} + deslocamento {brl(deslNum)}
+              </span>
+            )}
+          </label>
+        )}
         <label className="adm-check"><input type="checkbox" checked={v.visivel_cliente} onChange={(e) => mudar('visivel_cliente', e.target.checked)} /> Aparece na área do cliente</label>
         <label className="adm-check"><input type="checkbox" checked={v.pago} onChange={(e) => mudar('pago', e.target.checked)} /> Já foi pago</label>
         {v.pago && (

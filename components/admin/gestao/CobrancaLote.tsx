@@ -15,6 +15,7 @@ export default function CobrancaLote({ todos, clientes, config, avisar, fechar, 
   const [feitos, setFeitos] = useState<number[]>([]);
   const [cobradoEm, setCobradoEm] = useState<Record<number, string>>({});
   const [origem, setOrigem] = useState('');
+  const [baixando, setBaixando] = useState(false);
   useEffect(() => { setOrigem(window.location.origin); }, []);
 
   const fila = clientes
@@ -38,6 +39,67 @@ export default function CobrancaLote({ todos, clientes, config, avisar, fechar, 
     });
   }
 
+  // Planilha para o contador: um resumo por cliente e todos os pedidos em aberto
+  async function excel() {
+    setBaixando(true);
+    try {
+      const ExcelJS = (await import('exceljs')).default;
+      const wb = new ExcelJS.Workbook();
+      wb.creator = config.marca || 'MC Jurídico';
+      const argb = (hex: string) => `FF${hex.replace('#', '').toUpperCase()}`;
+      const moeda = '"R$" #,##0.00';
+      const titulo = (ws: any, texto: string, colunas: number) => {
+        ws.mergeCells(1, 1, 1, colunas);
+        const t = ws.getCell('A1');
+        t.value = texto;
+        t.font = { bold: true, size: 14, color: { argb: 'FFFFFFFF' } };
+        t.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: argb(config.cor_primaria || '#0E1B33') } };
+        ws.getRow(1).height = 26;
+      };
+      const cabecalho = (ws: any, nomes: string[]) => {
+        const r = ws.addRow(nomes);
+        r.eachCell((c: any) => { c.font = { bold: true, color: { argb: 'FFFFFFFF' } }; c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: argb(config.cor_destaque || '#A8894E') } }; });
+      };
+
+      const ws = wb.addWorksheet('Resumo por cliente', { views: [{ state: 'frozen', ySplit: 2 }] });
+      titulo(ws, `${config.marca || 'MC Jurídico'} · Valores em aberto · ${dataBR(hojeISO())}`, 8);
+      cabecalho(ws, ['Cliente', 'CPF/CNPJ', 'Responsável', 'Telefone', 'Pedidos', 'Mais antigo (dias)', 'Última cobrança', 'Total em aberto']);
+      for (const x of fila) {
+        const dias = diasDesde(x.maisAntigo);
+        const r = ws.addRow([x.c.nome, x.c.documento || '', x.c.responsavel || '', x.c.telefone || '', x.itens.length, dias, x.c.cobrado_em ? dataBR(x.c.cobrado_em) : '—', x.total]);
+        r.getCell(8).numFmt = moeda;
+        if (dias > 30) r.getCell(6).font = { bold: true, color: { argb: 'FFB3261E' } };
+        else if (dias > 15) r.getCell(6).font = { bold: true, color: { argb: 'FFE08A00' } };
+      }
+      const tot = ws.addRow(['Total', '', '', '', fila.reduce((s, x) => s + x.itens.length, 0), '', '', totalGeral]);
+      tot.font = { bold: true };
+      tot.getCell(8).numFmt = moeda;
+      tot.eachCell((c: any) => { c.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEEF0F4' } }; });
+      ws.columns = [{ width: 32 }, { width: 20 }, { width: 24 }, { width: 18 }, { width: 10 }, { width: 18 }, { width: 16 }, { width: 18 }];
+
+      const wp = wb.addWorksheet('Pedidos em aberto', { views: [{ state: 'frozen', ySplit: 2 }] });
+      titulo(wp, 'Pedidos concluídos e não pagos', 7);
+      cabecalho(wp, ['Cliente', 'Pedido', 'Serviço', 'Processo', 'Concluído em', 'Dias em aberto', 'Valor']);
+      for (const x of fila) for (const a of x.itens) {
+        const r = wp.addRow([x.c.nome, a.codigo || '', a.servico, a.processo || '', dataBR(a.data), diasDesde(a.data), Number(a.valor) || 0]);
+        r.getCell(7).numFmt = moeda;
+      }
+      wp.columns = [{ width: 30 }, { width: 12 }, { width: 40 }, { width: 26 }, { width: 14 }, { width: 14 }, { width: 14 }];
+
+      const buf = await wb.xlsx.writeBuffer();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+      a.download = `inadimplentes-${hojeISO()}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (e: any) {
+      avisar(`Não consegui gerar a planilha: ${e.message}`, true);
+    } finally {
+      setBaixando(false);
+    }
+  }
+
   async function cobrar(x: (typeof fila)[number]) {
     if (!x.c.telefone) return avisar(`${x.c.nome} não tem WhatsApp cadastrado.`, true);
     window.open(whatsDoTelefone(x.c.telefone, mensagem(x)), '_blank', 'noopener');
@@ -52,7 +114,10 @@ export default function CobrancaLote({ todos, clientes, config, avisar, fechar, 
     <div className="adm-item mudou" style={{ gap: 12 }}>
       <div className="adm-linha" style={{ justifyContent: 'space-between' }}>
         <h3 style={{ margin: 0 }}>💰 Cobrar inadimplentes ({fila.length})</h3>
-        <button className="adm-btn peq" onClick={fechar}>Fechar</button>
+        <span className="adm-linha">
+          {fila.length > 0 && <button className="adm-btn peq" onClick={excel} disabled={baixando}>{baixando ? 'Gerando…' : '📊 Baixar em Excel (contador)'}</button>}
+          <button className="adm-btn peq" onClick={fechar}>Fechar</button>
+        </span>
       </div>
       <p className="adm-dica" style={{ margin: 0 }}>
         Total em aberto: <strong>{brl(totalGeral)}</strong>. Cada cliente recebe uma mensagem só, com todos os pedidos e o Pix do total.

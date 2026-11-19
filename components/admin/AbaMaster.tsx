@@ -6,6 +6,7 @@ import type { Config } from '@/lib/tipos';
 import CrudLista from './CrudLista';
 import FormConfig from './FormConfig';
 import Backup from './Backup';
+import Notificacoes from './Notificacoes';
 
 export default function AbaMaster({ config, salvar, avisar }: {
   config: Config;
@@ -68,6 +69,7 @@ export default function AbaMaster({ config, salvar, avisar }: {
         ]}
       />
 
+      <Notificacoes avisar={avisar} />
       <Backup avisar={avisar} />
 
       <FormConfig

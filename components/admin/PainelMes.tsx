@@ -14,7 +14,7 @@ export default function PainelMes({ irPara }: { irPara: (aba: string) => void })
 
   useEffect(() => {
     (async () => {
-      const desde = new Date(Date.now() - 90 * 864e5).toISOString();
+      const desde = new Date(Date.now() - 366 * 864e5).toISOString();
       const [p, c, d] = await Promise.all([
         supabase().from('atendimentos').select('id, codigo, servico, status, prazo, data, cliente_id').neq('status', 'cancelado').gte('data', `${hojeISO().slice(0, 4)}-01-01`),
         supabase().from('clientes').select('id, nome'),
@@ -36,7 +36,18 @@ export default function PainelMes({ irPara }: { irPara: (aba: string) => void })
   const limite = somarDiasUteis(hoje, 5);
   const semana = abertos.filter((p) => p.prazo && p.prazo <= limite).sort((a, b) => (a.prazo! < b.prazo! ? -1 : 1));
 
-  const notas = aval.filter((a) => a.nota);
+  const limite90 = new Date(Date.now() - 90 * 864e5).toISOString();
+  const notas = aval.filter((a) => a.nota && (a.criado_em ?? '') >= limite90);
+  // Satisfação mês a mês (12 meses)
+  const agora = new Date();
+  const meses = Array.from({ length: 12 }, (_, i) => {
+    const d = new Date(agora.getFullYear(), agora.getMonth() - 11 + i, 1);
+    const chave = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    const doMes = aval.filter((a) => a.nota && (a.criado_em ?? '').slice(0, 7) === chave);
+    const m = doMes.length ? doMes.reduce((s, a) => s + (a.nota || 0), 0) / doMes.length : 0;
+    return { chave, rotulo: d.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''), media: m, qtd: doMes.length, baixas: doMes.filter((a) => (a.nota || 0) <= 3).length };
+  });
+  const temHistorico = meses.filter((m) => m.qtd).length >= 2;
   const media = notas.length ? notas.reduce((s, a) => s + (a.nota || 0), 0) / notas.length : 0;
   const pontos = Object.entries(aval.flatMap((a) => a.pontos ?? []).reduce<Record<string, number>>((m, p) => ((m[p] = (m[p] ?? 0) + 1), m), {})).sort((a, b) => b[1] - a[1]).slice(0, 4);
 
@@ -85,6 +96,17 @@ export default function PainelMes({ irPara }: { irPara: (aba: string) => void })
             <span className="adm-dica" style={{ margin: 0 }}>{notas.length} avaliaç{notas.length > 1 ? 'ões' : 'ão'}</span>
             {pontos.length > 0 && <div className="adm-linha">{pontos.map(([p, q]) => <span key={p} className="etq" style={{ ['--cor' as string]: '#2e7d32' }}>{p} · {q}</span>)}</div>}
           </>
+        )}
+        {temHistorico && (
+          <div className="satisf-grafico" role="img" aria-label="Nota média por mês nos últimos 12 meses">
+            {meses.map((m) => (
+              <div key={m.chave} className="satisf-col" title={m.qtd ? `${m.rotulo}: ${m.media.toFixed(1).replace('.', ',')} ★ (${m.qtd} avaliação${m.qtd > 1 ? 'ões' : ''}${m.baixas ? `, ${m.baixas} nota baixa` : ''})` : `${m.rotulo}: sem avaliações`}>
+                <span className="satisf-valor">{m.qtd ? m.media.toFixed(1).replace('.', ',') : ''}</span>
+                <span className="satisf-barra" style={{ height: `${(m.media / 5) * 100}%`, background: !m.qtd ? 'transparent' : m.media >= 4.5 ? '#2e7d32' : m.media >= 3.5 ? '#a8894e' : '#b3261e' }} />
+                <span className="satisf-mes">{m.rotulo}</span>
+              </div>
+            ))}
+          </div>
         )}
       </div>
     </div>

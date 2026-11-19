@@ -1,11 +1,12 @@
 'use client';
 // Área do cliente: pedidos com etapas e prazo, envio de documentos e comprovante,
 // Pix para pagar, recibos, orçamentos e horas do pacote.
-import { useEffect, useState, type CSSProperties } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import type { Config } from '@/lib/tipos';
 import { supabase } from '@/lib/supabase';
 import { linhas, linkWhats } from '@/lib/util';
-import { COR_STATUS, STATUS, brl, dataBR, pixDe, rotulo, situacaoPrazo, type Atendimento, type Cliente } from '@/lib/gestao';
+import { COR_STATUS, STATUS, brl, dataBR, definirFeriadosExtras, pixDe, rotulo, situacaoPrazo, type Atendimento, type Cliente, type FeriadoExtra } from '@/lib/gestao';
+import { ativarNotificacoes, desativarNotificacoes, inscricaoAtual, precisaInstalar, pushDisponivel } from '@/lib/push';
 import { estiloMarca } from '@/components/site/PaginaSimples';
 import Recibo from '@/components/admin/gestao/Recibo';
 import BotaoInstalar from '@/components/admin/BotaoInstalar';
@@ -43,7 +44,38 @@ function etapaAtual(p: Pedido) {
 
 const LIMITE_MB = 15;
 
-export default function AreaCliente({ token, config }: { token: string; config: Config }) {
+// Botão para receber avisos no celular (etapa do pedido e lembrete de prazo)
+function BotaoAvisos({ token, pin }: { token: string; pin: string }) {
+  const [estado, setEstado] = useState<'carregando' | 'indisponivel' | 'instalar' | 'desligado' | 'ligado'>('carregando');
+  const [erro, setErro] = useState('');
+  useEffect(() => {
+    if (precisaInstalar()) return setEstado('instalar');
+    if (!pushDisponivel()) return setEstado('indisponivel');
+    inscricaoAtual(`/cliente/${token}`).then((s) => setEstado(s && Notification.permission === 'granted' ? 'ligado' : 'desligado'));
+  }, [token]);
+
+  if (estado === 'carregando' || estado === 'indisponivel') return null;
+  if (estado === 'instalar') return <p className="ac-sub ac-avisos">🔔 Para receber avisos no iPhone, toque em <strong>Compartilhar › Adicionar à Tela de Início</strong> e abra pelo ícone.</p>;
+  return (
+    <div className="ac-avisos">
+      {estado === 'ligado' ? (
+        <>
+          <span>🔔 Avisos ligados neste celular: você recebe quando o pedido mudar de etapa e um dia útil antes dos prazos.</span>
+          <button className="link-btn" onClick={async () => { await desativarNotificacoes(token, pin); setEstado('desligado'); }}>Desligar</button>
+        </>
+      ) : (
+        <button className="ac-btn ac-btn-linha" onClick={async () => {
+          setErro('');
+          try { await ativarNotificacoes(token, pin); setEstado('ligado'); } catch (e: any) { setErro(e.message); }
+        }}>🔔 Receber avisos no celular</button>
+      )}
+      {erro && <span className="ac-erro">{erro}</span>}
+    </div>
+  );
+}
+
+export default function AreaCliente({ token, config, feriados }: { token: string; config: Config; feriados?: FeriadoExtra[] }) {
+  useMemo(() => { if (feriados) definirFeriadosExtras(feriados); }, [feriados]);
   const chavePin = `mc-pin-${token.slice(0, 8)}`;
   const [pin, setPin] = useState('');
   const [dados, setDados] = useState<Dados | null>(null);
@@ -239,6 +271,7 @@ export default function AreaCliente({ token, config }: { token: string; config: 
       </header>
 
       <main className="ac-corpo">
+        <BotaoAvisos token={token} pin={pin} />
         {dados.horas && Number(dados.horas.contratadas) > 0 && (() => {
           const pct = Math.min(100, (dados.horas!.usadas / Number(dados.horas!.contratadas)) * 100);
           return (

@@ -36,6 +36,10 @@ export type Config = {
   foto_url: string;
   assinatura_url?: string;
   mostrar_mapa?: boolean;
+  km_valor?: number;
+  km_franquia?: number;
+  km_ida_volta?: boolean;
+  meta_mensal?: number;
   cor_primaria: string;
   cor_destaque: string;
   fonte_titulo: string;
@@ -69,8 +73,8 @@ export type Formacao = { id: number; titulo: string; instituicao: string; ano: s
 export type Documento = { id: number; titulo: string; descricao: string; pasta: string; arquivo_url: string; caminho: string; publico: boolean; ordem: number };
 export type Pergunta = { id: number; pergunta: string; resposta: string; palavras_chave: string; ordem: number; ativo: boolean };
 
-export type Comarca = { id: number; nome: string; uf: string; lat: number | null; lng: number | null; tipo: 'base' | 'deslocamento' | 'consulta'; observacao: string; ordem: number; ativo: boolean };
-export type Depoimento = { id: number; nome: string; cargo: string; texto: string; ordem: number; ativo: boolean; nota?: number | null };
+export type Comarca = { id: number; nome: string; uf: string; lat: number | null; lng: number | null; tipo: 'base' | 'deslocamento' | 'consulta'; observacao: string; ordem: number; ativo: boolean; km?: number | null };
+export type Depoimento = { id: number; nome: string; cargo: string; texto: string; ordem: number; ativo: boolean; nota?: number | null; pedido?: string; lida?: boolean; criado_em?: string };
 
 export type Dados = {
   config: Config;
@@ -82,6 +86,7 @@ export type Dados = {
   perguntas: Pergunta[];
   depoimentos: Depoimento[];
   comarcas?: Comarca[];
+  feriados?: { data: string; nome: string; cidade?: string; recorrente?: boolean }[];
 };
 
 // Seções da página, na ordem padrão.
